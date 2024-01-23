@@ -2,6 +2,8 @@ import logging
 import os
 import sys
 
+from tf_pytest import *
+
 
 def _config_root_logger():
     root_logger = logging.getLogger()
