@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 
@@ -13,3 +14,5 @@ def _config_root_logger():
 
 
 _config_root_logger()
+
+os.environ["TF_PYTEST_DIR"] = "./terraform"

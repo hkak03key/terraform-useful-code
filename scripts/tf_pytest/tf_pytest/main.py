@@ -17,8 +17,8 @@ def _config_root_logger():
 
 
 # logger
-logger = logging.getLogger(__name__)
-logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
+_logger = logging.getLogger(__name__)
+_logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 @pytest.fixture(scope="session")
@@ -29,13 +29,13 @@ def init_destroy():
 def _init_destroy():
     cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
 
-    logger.info("terraform init")
+    _logger.info("terraform init")
     _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
 
     yield
 
     if os.environ.get("TF_PYTEST_DESTROY", "true").lower() == "false":
-        logger.info("terraform destroy skip")
+        _logger.info("terraform destroy skip")
         return
 
     _exec_cmd(
@@ -45,11 +45,19 @@ def _init_destroy():
         print_stderr=True,
     )
 
-    logger.info("terraform destroy")
+    _logger.info("terraform destroy")
+
+
+@pytest.fixture(scope="function", autouse=False)
+def apply(init_destroy):
+    cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
+
+    _logger.info("terraform apply")
+    _exec_cmd(["terraform", "apply", "-lock=false", "-auto-approve"], cwd=cwd, print_stdout=True, print_stderr=True)
 
 
 def _exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
-    logger.info("exec_cmd: {}...".format(" ".join(cmd)))
+    _logger.info("exec_cmd: {}...".format(" ".join(cmd)))
     proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if print_stdout:

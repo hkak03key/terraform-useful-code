@@ -1,5 +1,5 @@
-from tf_pytest.main import init_destroy
+from tf_pytest.main import *
 
 
-def test_init_destroy(init_destroy):
+def test_apply(apply):
     print("some test")
