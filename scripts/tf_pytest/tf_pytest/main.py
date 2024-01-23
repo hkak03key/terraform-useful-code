@@ -71,11 +71,113 @@ def _exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
     return proc
 
 
-class TfstateNodeRoot(TfStateNode):
+class TfStateNode(ABC):
+    @abstractmethod
+    def __init__(self, address, state):
+        self.address = address
+        self.state = state
+
+
+class TfstateNodeResources(TfStateNode):
+    def __init__(self, address, state):
+        super().__init__(address, state)
+
+    def __getattr__(self, name):
+        _logger.debug("name: {}".format(name))
+        target_addr = (self.address + "." + name).removeprefix(".")
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self.state))
+
+        for resource in self.state["resources"]:
+            if resource["address"] == target_addr:
+                return TfstateNodeResource(target_addr, resource)
+
+        raise AttributeError("{} is not found".format(target_addr))
+
+
+class TfstateNodeDatas(TfStateNode):
+    def __init__(self, address, state):
+        super().__init__(address, state)
+
+    def __getattr__(self, name):
+        _logger.debug("name: {}".format(name))
+        target_addr = (self.address + "." + name).removeprefix(".")
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self.state))
+
+        new_state = {"resources": [resource for resource in self.state["resources"] if resource["type"] == name]}
+        _logger.debug("new_state: {}".format(new_state))
+        if len(new_state["resources"]) == 0:
+            raise AttributeError("{} is not found".format(target_addr))
+
+        return TfstateNodeResources(target_addr, new_state)
+
+
+class TfstateNodeResource(TfStateNode):
+    def __init__(self, address, state):
+        super().__init__(address, state)
+
+    def __getattr__(self, name):
+        _logger.debug("name: {}".format(name))
+
+        if name in self.state.keys():
+            return self.state[name]
+
+
+class TfstateNodeModules(TfStateNode):
+    def __init__(self, address, state):
+        super().__init__(address, state)
+
+    def __getattr__(self, name):
+        _logger.debug("name: {}".format(name))
+        target_addr = (self.address + "." + name).removeprefix(".")
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self.state))
+
+        for child_module in self.state["child_modules"]:
+            if child_module["address"] == target_addr:
+                return TfstateNodeModule(target_addr, child_module)
+
+        raise AttributeError("{} is not found".format(target_addr))
+
+
+class TfstateNodeModule(TfStateNode):
+    def __init__(self, address, state):
+        super().__init__(address, state)
+
+    def __getattr__(self, name):
+        _logger.debug("name: {}".format(name))
+        target_addr = (self.address + "." + name).removeprefix(".")
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self.state))
+
+        if name == "module":
+            return TfstateNodeModules(target_addr, {"child_modules": self.state["child_modules"]})
+
+        if name == "data":
+            return TfstateNodeDatas(
+                target_addr,
+                {"resources": [resource for resource in self.state["resources"] if resource["mode"] == "data"]},
+            )
+
+        new_state = {"resources": [resource for resource in self.state["resources"] if resource["type"] == name]}
+        _logger.debug("new_state: {}".format(new_state))
+        if len(new_state["resources"]) == 0:
+            raise AttributeError("{} is not found".format(target_addr))
+
+        return TfstateNodeResources(target_addr, new_state)
+
+
+class TfstateNodeRoot(TfstateNodeModule):
     def __init__(self):
         cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
         state = json.loads(_exec_cmd(["terraform", "show", "-json"], cwd=cwd, print_stderr=True).stdout.decode("utf8"))
-        self._state = state["values"]["root_module"]
+
+        super().__init__("", state["values"]["root_module"])
 
 
 if __name__ == "__main__":
