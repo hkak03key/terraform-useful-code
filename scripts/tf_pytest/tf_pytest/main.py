@@ -1,9 +1,14 @@
+import json
 import logging
 import os
 import subprocess
 import sys
+import time
+from abc import ABC, abstractmethod
 
 import pytest
+import tfstate as tfstate_module
+from utility import exec_cmd as _exec_cmd
 
 
 def _config_root_logger():
@@ -32,6 +37,9 @@ def _init_destroy():
     _logger.info("terraform init")
     _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
 
+    _apply()
+    time.sleep(3)
+
     yield
 
     if os.environ.get("TF_PYTEST_DESTROY", "true").lower() == "false":
@@ -50,23 +58,26 @@ def _init_destroy():
 
 @pytest.fixture(scope="function", autouse=False)
 def apply(init_destroy):
+    return _apply()
+
+
+def _apply():
     cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
 
     _logger.info("terraform apply")
     _exec_cmd(["terraform", "apply", "-lock=false", "-auto-approve"], cwd=cwd, print_stdout=True, print_stderr=True)
 
 
-def _exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
-    _logger.info("exec_cmd: {}...".format(" ".join(cmd)))
-    proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+@pytest.fixture(scope="function", autouse=False)
+def tfstate(apply):
+    root = tfstate_module.NodeRoot()
+    return root
 
-    if print_stdout:
-        print(proc.stdout.decode("utf8"))
-    if print_stderr:
-        print(proc.stderr.decode("utf8"))
 
-    proc.check_returncode()
-    return proc
+@pytest.fixture(scope="function", autouse=False)
+def tfstate_skip_apply(init_destroy):
+    root = tfstate_module.NodeRoot()
+    return root
 
 
 if __name__ == "__main__":
