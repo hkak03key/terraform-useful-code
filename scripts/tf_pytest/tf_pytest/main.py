@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import sys
 
 import pytest
@@ -26,15 +27,38 @@ def init_destroy():
 
 
 def _init_destroy():
+    cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
+
     logger.info("terraform init")
+    _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
 
     yield
 
-    if os.environ.get("DESTROY", "true").lower() == "false":
+    if os.environ.get("TF_PYTEST_DESTROY", "true").lower() == "false":
         logger.info("terraform destroy skip")
         return
 
+    _exec_cmd(
+        ["terraform", "apply", "-lock=false", "-destroy", "-auto-approve"],
+        cwd=cwd,
+        print_stdout=True,
+        print_stderr=True,
+    )
+
     logger.info("terraform destroy")
+
+
+def _exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
+    logger.info("exec_cmd: {}...".format(" ".join(cmd)))
+    proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if print_stdout:
+        print(proc.stdout.decode("utf8"))
+    if print_stderr:
+        print(proc.stderr.decode("utf8"))
+
+    proc.check_returncode()
+    return proc
 
 
 if __name__ == "__main__":
