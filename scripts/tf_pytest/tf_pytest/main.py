@@ -1,7 +1,9 @@
+import json
 import logging
 import os
 import subprocess
 import sys
+from abc import ABC, abstractmethod
 
 import pytest
 
@@ -67,6 +69,13 @@ def _exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
 
     proc.check_returncode()
     return proc
+
+
+class TfstateNodeRoot(TfStateNode):
+    def __init__(self):
+        cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
+        state = json.loads(_exec_cmd(["terraform", "show", "-json"], cwd=cwd, print_stderr=True).stdout.decode("utf8"))
+        self._state = state["values"]["root_module"]
 
 
 if __name__ == "__main__":
