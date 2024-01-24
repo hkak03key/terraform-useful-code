@@ -1,0 +1,75 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-python-format:
+    runs-on: ubuntu-latest
+
+    container:
+      image: python:3.10.0-buster
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Python Library
+        run: pip3 install autopep8==1.7.0 black==22.8.0 isort==5.10.1
+      - name: Autopep8
+        run: find . -name "*.py" | xargs autopep8 --in-place
+      - name: Black
+        run: black --line-length 119 .
+      - name: isort
+        run: isort -rc .
+      - name: Check Diff
+        run: git diff --exit-code
+
+  set-pytest-matrics:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    outputs:
+      directories: ${{ steps.gen-pytest-target-dir-list.outputs.value }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate pytest target dir list
+        id: gen-pytest-target-dir-list
+        run: |
+          TMP_FILE=$(mktemp)
+          find aws/terraform -type d -name "pytest" > ${TMP_FILE}
+          LIST=$(cat ${TMP_FILE} | sort | uniq | jq -R -s -c 'split("\n")[:-1]')
+
+          echo ${LIST}
+          echo "value=${LIST}" >> $GITHUB_OUTPUT
+
+  execute-pytest:
+    needs: set-pytest-matrics
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.10.0-buster
+    strategy:
+      matrix:
+        directory: ${{fromJson(needs.set-pytest-matrics.outputs.directories) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Echo directory
+        working-directory: ${{ matrix.directory }}
+        run: pwd
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.3.1"
+      - name: Install pytest
+        run: |
+          pip install pytest
+      - name: Pytest
+        working-directory: ${{ matrix.directory }}
+        run: |
+          pytest -s
