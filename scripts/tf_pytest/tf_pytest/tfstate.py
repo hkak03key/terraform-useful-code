@@ -14,7 +14,7 @@ class Node(ABC):
     @abstractmethod
     def __init__(self, address, state):
         self.address = address
-        self.state = state
+        self._state = state
 
 
 class NodeResources(Node):
@@ -26,9 +26,9 @@ class NodeResources(Node):
         target_addr = (self.address + "." + name).removeprefix(".")
         _logger.debug("target_addr: {}".format(target_addr))
 
-        _logger.debug("self._state: {}".format(self.state))
+        _logger.debug("self._state: {}".format(self._state))
 
-        for resource in self.state["resources"]:
+        for resource in self._state["resources"]:
             if resource["address"] == target_addr:
                 return NodeResource(target_addr, resource)
 
@@ -44,9 +44,9 @@ class NodeDatas(Node):
         target_addr = (self.address + "." + name).removeprefix(".")
         _logger.debug("target_addr: {}".format(target_addr))
 
-        _logger.debug("self._state: {}".format(self.state))
+        _logger.debug("self._state: {}".format(self._state))
 
-        new_state = {"resources": [resource for resource in self.state["resources"] if resource["type"] == name]}
+        new_state = {"resources": [resource for resource in self._state["resources"] if resource["type"] == name]}
         _logger.debug("new_state: {}".format(new_state))
         if len(new_state["resources"]) == 0:
             raise AttributeError("{} is not found".format(target_addr))
@@ -61,8 +61,8 @@ class NodeResource(Node):
     def __getattr__(self, name):
         _logger.debug("name: {}".format(name))
 
-        if name in self.state.keys():
-            return self.state[name]
+        if name in self._state.keys():
+            return self._state[name]
 
 
 class NodeModules(Node):
@@ -74,9 +74,9 @@ class NodeModules(Node):
         target_addr = (self.address + "." + name).removeprefix(".")
         _logger.debug("target_addr: {}".format(target_addr))
 
-        _logger.debug("self._state: {}".format(self.state))
+        _logger.debug("self._state: {}".format(self._state))
 
-        for child_module in self.state["child_modules"]:
+        for child_module in self._state["child_modules"]:
             if child_module["address"] == target_addr:
                 return NodeModule(target_addr, child_module)
 
@@ -92,18 +92,18 @@ class NodeModule(Node):
         target_addr = (self.address + "." + name).removeprefix(".")
         _logger.debug("target_addr: {}".format(target_addr))
 
-        _logger.debug("self._state: {}".format(self.state))
+        _logger.debug("self._state: {}".format(self._state))
 
         if name == "module":
-            return NodeModules(target_addr, {"child_modules": self.state["child_modules"]})
+            return NodeModules(target_addr, {"child_modules": self._state["child_modules"]})
 
         if name == "data":
             return NodeDatas(
                 target_addr,
-                {"resources": [resource for resource in self.state["resources"] if resource["mode"] == "data"]},
+                {"resources": [resource for resource in self._state["resources"] if resource["mode"] == "data"]},
             )
 
-        new_state = {"resources": [resource for resource in self.state["resources"] if resource["type"] == name]}
+        new_state = {"resources": [resource for resource in self._state["resources"] if resource["type"] == name]}
         _logger.debug("new_state: {}".format(new_state))
         if len(new_state["resources"]) == 0:
             raise AttributeError("{} is not found".format(target_addr))
