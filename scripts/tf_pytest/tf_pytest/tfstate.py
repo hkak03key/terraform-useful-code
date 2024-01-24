@@ -28,9 +28,12 @@ class NodeResources(Node):
 
         _logger.debug("self._state: {}".format(self._state))
 
-        for resource in self._state["resources"]:
-            if resource["address"] == target_addr:
-                return NodeResource(target_addr, resource)
+        new_state = [resource for resource in self._state["resources"] if resource["name"] == name]
+        if len(new_state) == 1:
+            return NodeResource(target_addr, new_state[0])
+
+        if len(new_state) >= 2:
+            return NodeResource(target_addr, new_state)
 
         raise AttributeError("{} is not found".format(target_addr))
 
@@ -64,6 +67,24 @@ class NodeResource(Node):
         if name in self._state.keys():
             return self._state[name]
 
+    def __getitem__(self, index):
+        _logger.debug("index: {}".format(index))
+
+        target_addr = (
+            (self.address + "[" + str(index) + "]").removeprefix(".")
+            if type(index) is int
+            else (self.address + '["' + index + '"]').removeprefix(".")
+        )
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self._state))
+
+        for resource in self._state:
+            if resource["index"] == index:
+                return NodeResource(target_addr, resource)
+
+        raise AttributeError("{} is not found".format(target_addr))
+
 
 class NodeModules(Node):
     def __init__(self, address, state):
@@ -76,9 +97,16 @@ class NodeModules(Node):
 
         _logger.debug("self._state: {}".format(self._state))
 
-        for child_module in self._state["child_modules"]:
-            if child_module["address"] == target_addr:
-                return NodeModule(target_addr, child_module)
+        new_state = [
+            child_module
+            for child_module in self._state["child_modules"]
+            if child_module["address"].startswith(target_addr)
+        ]
+        if len(new_state) == 1:
+            return NodeModule(target_addr, new_state[0])
+
+        if len(new_state) >= 2:
+            return NodeModule(target_addr, new_state)
 
         raise AttributeError("{} is not found".format(target_addr))
 
@@ -109,6 +137,27 @@ class NodeModule(Node):
             raise AttributeError("{} is not found".format(target_addr))
 
         return NodeResources(target_addr, new_state)
+
+    def __getitem__(self, index):
+        _logger.debug("index: {}".format(index))
+
+        target_addr = (
+            (self.address + "[" + str(index) + "]").removeprefix(".")
+            if type(index) is int
+            else (self.address + '["' + index + '"]').removeprefix(".")
+        )
+        _logger.debug("target_addr: {}".format(target_addr))
+
+        _logger.debug("self._state: {}".format(self._state))
+
+        new_state = [child_module for child_module in self._state if child_module["address"].startswith(target_addr)]
+        if len(new_state) == 1:
+            return NodeModule(target_addr, new_state[0])
+
+        if len(new_state) >= 2:
+            raise AttributeError("{} exists multiple, this is bug or state is broken...".format(target_addr))
+
+        raise AttributeError("{} is not found".format(target_addr))
 
 
 class NodeRoot(NodeModule):
