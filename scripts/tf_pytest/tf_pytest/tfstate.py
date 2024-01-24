@@ -3,7 +3,7 @@ import logging
 import os
 from abc import ABC, abstractmethod
 
-from utility import exec_cmd as _exec_cmd
+from .utility import exec_cmd as _exec_cmd
 
 # logger
 _logger = logging.getLogger(__name__)

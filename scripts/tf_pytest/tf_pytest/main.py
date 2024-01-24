@@ -7,8 +7,9 @@ import time
 from abc import ABC, abstractmethod
 
 import pytest
-import tfstate as tfstate_module
-from utility import exec_cmd as _exec_cmd
+
+from . import tfstate as tfstate_module
+from .utility import exec_cmd as _exec_cmd
 
 
 def _config_root_logger():
