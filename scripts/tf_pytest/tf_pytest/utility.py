@@ -9,6 +9,7 @@ _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 def exec_cmd(cmd, cwd, print_stdout=False, print_stderr=False):
     _logger.info("exec_cmd: {}...".format(" ".join(cmd)))
+    _logger.debug("cwd: {}...".format(cwd))
     proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if print_stdout:
