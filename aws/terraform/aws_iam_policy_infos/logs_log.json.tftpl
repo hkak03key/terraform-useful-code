@@ -1,0 +1,64 @@
+{
+    "name": "${
+      replace(
+        join(
+          "-",
+          compact([
+            "logs-log",
+            (
+              aws_account_id != aws_cloudwatch_log_group_aws_account_id
+              ? aws_cloudwatch_log_group_aws_account_id
+              : ""
+            ),
+            (
+              aws_cloudwatch_log_group_region != "*"
+              ? {
+                "ap-northeast-1" = "apn1"
+              }[aws_cloudwatch_log_group_region]
+              : ""
+            ),
+            aws_cloudwatch_log_group_name,
+          ])
+        ),
+        "/[_/]*",
+        "-"
+      )
+    }",
+    "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowLogGroup",
+                "Effect": "Allow",
+                "Action": [
+                    "logs:Describe*",
+                    "logs:Get*",
+                    "logs:List*"
+                ],
+                "Resource": "arn:aws:logs:${aws_cloudwatch_log_group_region}:${aws_cloudwatch_log_group_aws_account_id}:log-group:${aws_cloudwatch_log_group_name}"
+            },
+            {
+                "Sid": "AllowLogStream",
+                "Effect": "Allow",
+                "Action": [
+                    "logs:Describe*",
+                    "logs:Get*",
+                    "logs:List*",
+                    "logs:Create*",
+                    "logs:Put*"
+                ],
+                "Resource": "arn:aws:logs:${aws_cloudwatch_log_group_region}:${aws_cloudwatch_log_group_aws_account_id}:log-group:${aws_cloudwatch_log_group_name}:log-stream:*"
+            },
+            {
+                "Sid": "AllowLogDeliveryV1",
+                "Effect": "Allow",
+                "Action": [
+                    "logs:DescribeResourcePolicies",
+                    "logs:*LogDelivery",
+                    "logs:*LogDeliveries"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+}
