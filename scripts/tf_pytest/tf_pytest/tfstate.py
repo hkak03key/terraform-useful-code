@@ -16,6 +16,17 @@ class Node(ABC):
         self.address = address
         self._state = state
 
+    def __str__(self):
+        return {
+            "address": self.address,
+            "state": self._state,
+        }.__str__()
+
+    def __repr__(self):
+        return {
+            "address": self.address,
+            "state": self._state,
+        }.__repr__()
 
 class NodeResources(Node):
     def __init__(self, address, state):
