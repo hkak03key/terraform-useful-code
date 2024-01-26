@@ -3,10 +3,10 @@ import os
 import uuid
 from functools import singledispatchmethod
 
+import boto3
 from tf_pytest.aws import AwsIAMPolicyTester
 from typing_extensions import override
 
-import boto3
 import pytest
 
 # logger
@@ -14,8 +14,17 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
+@pytest.fixture(scope="session")
+def delete_all_object(init_destroy):
+    yield
 
+    _logger.info("delete all object")
 
+    root = init_destroy
+    aws_s3_bucket = root.module.default.aws_s3_bucket.default
+
+    bucket_name = aws_s3_bucket.values["bucket"]
+    s3 = boto3.resource("s3").Bucket(bucket_name).objects.all().delete()
 
 
 class AwsIAMPolicyTesterS3Write(AwsIAMPolicyTester):
@@ -62,7 +71,7 @@ class AwsIAMPolicyTesterS3Write(AwsIAMPolicyTester):
         ]
     ],
 )
-def test_write_object(tfstate_skip_apply, request, iam_role, expect):
+def test_write_object(tfstate_skip_apply, delete_all_object, request, iam_role, expect):
     root = tfstate_skip_apply
 
     aws_s3_bucket = root.module.default.aws_s3_bucket.default
@@ -119,7 +128,7 @@ class AwsIAMPoliyTesterS3Read(AwsIAMPolicyTester):
         ]
     ],
 )
-def test_read_object(tfstate_skip_apply, request, iam_role, expect):
+def test_read_object(tfstate_skip_apply, delete_all_object, request, iam_role, expect):
     root = tfstate_skip_apply
 
     object_key = str(uuid.uuid4())

@@ -38,23 +38,22 @@ def _init_destroy():
     _logger.info("terraform init")
     _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
 
-    _apply()
+    root = _apply()
     time.sleep(3)
 
-    yield
+    yield root
 
     if os.environ.get("TF_PYTEST_DESTROY", "true").lower() == "false":
         _logger.info("terraform destroy skip")
         return
 
+    _logger.info("terraform destroy")
     _exec_cmd(
         ["terraform", "apply", "-lock=false", "-destroy", "-auto-approve"],
         cwd=cwd,
         print_stdout=True,
         print_stderr=True,
     )
-
-    _logger.info("terraform destroy")
 
 
 @pytest.fixture(scope="function", autouse=False)
@@ -68,11 +67,13 @@ def _apply():
     _logger.info("terraform apply")
     _exec_cmd(["terraform", "apply", "-lock=false", "-auto-approve"], cwd=cwd, print_stdout=True, print_stderr=True)
 
+    root = tfstate_module.NodeRoot()
+    return root
+
 
 @pytest.fixture(scope="function", autouse=False)
 def tfstate(apply):
-    root = tfstate_module.NodeRoot()
-    return root
+    return apply
 
 
 @pytest.fixture(scope="function", autouse=False)

@@ -1,10 +1,9 @@
 import os
 import uuid
-
-import boto3
-
 from abc import ABC, abstractmethod
 from functools import singledispatchmethod
+
+import boto3
 
 
 def generate_boto3_session(iam_role_arn, region_name=None):
