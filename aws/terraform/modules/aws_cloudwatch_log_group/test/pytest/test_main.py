@@ -1,11 +1,9 @@
 import logging
 import os
 import uuid
-from functools import singledispatchmethod
 
 import boto3
 from tf_pytest.aws import AwsIAMPolicyTester
-from typing_extensions import override
 
 import pytest
 
@@ -18,16 +16,10 @@ class AwsIAMPolicyTesterCloudwatchLogs(AwsIAMPolicyTester):
     def __init__(self, aws_iam_role_arn: str):
         super().__init__(aws_iam_role_arn)
 
-    def __del__(self):
+    def close(self):
         pass
 
-    @singledispatchmethod
-    @override
-    def test(self):
-        raise NotImplementedError(f"This {type(self).__name__} does not implement test().")
-
-    @test.register
-    def _test_impl(self, log_group_name: str) -> bool:
+    def test(self, log_group_name: str) -> bool:
         client = self._session.client("logs")
         logs_stream_name = str(uuid.uuid4())
 
@@ -77,10 +69,9 @@ def test_put_log_events(tfstate_skip_apply, request, iam_role, expect):
 
     aws_cloudwatch_log_group = root.module.default.aws_cloudwatch_log_group.default
 
-    tester = AwsIAMPolicyTesterCloudwatchLogs(
+    with AwsIAMPolicyTesterCloudwatchLogs(
         **{
             "aws_iam_role_arn": aws_iam_role.values["arn"],
         }
-    )
-
-    assert tester.test(aws_cloudwatch_log_group.values["name"]) == expect
+    ) as tester:
+        assert tester.test(aws_cloudwatch_log_group.values["name"]) == expect

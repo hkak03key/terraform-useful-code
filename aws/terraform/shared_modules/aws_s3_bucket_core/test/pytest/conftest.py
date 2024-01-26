@@ -2,7 +2,14 @@ import logging
 import os
 import sys
 
+import boto3
 from tf_pytest import *
+
+import pytest
+
+# logger
+_logger = logging.getLogger(__name__)
+_logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 def _config_root_logger():
@@ -16,3 +23,16 @@ def _config_root_logger():
 
 
 _config_root_logger()
+
+
+@pytest.fixture(scope="session")
+def delete_all_object(init_destroy):
+    yield
+
+    _logger.info("delete all object")
+
+    root = init_destroy
+    aws_s3_bucket = root.module.default.aws_s3_bucket.default
+
+    bucket_name = aws_s3_bucket.values["bucket"]
+    s3 = boto3.resource("s3").Bucket(bucket_name).objects.all().delete()

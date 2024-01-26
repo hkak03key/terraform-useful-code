@@ -1,9 +1,14 @@
+import logging
 import os
 import uuid
 from abc import ABC, abstractmethod
 from functools import singledispatchmethod
 
 import boto3
+
+# logger
+_logger = logging.getLogger(__name__)
+_logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 def generate_boto3_session(iam_role_arn, region_name=None):
@@ -30,11 +35,16 @@ class AwsIAMPolicyTester(ABC):
     def __init__(self, aws_iam_role_arn: str):
         self._session = generate_boto3_session(aws_iam_role_arn)
 
+    def __enter__(self):
+        return self
+
     @abstractmethod
-    def __del__(self):
+    def close(self):
         pass
 
-    @singledispatchmethod
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     @abstractmethod
     def test(self):
         pass
