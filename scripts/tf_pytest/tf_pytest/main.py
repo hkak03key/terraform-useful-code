@@ -3,7 +3,6 @@ import logging
 import os
 import subprocess
 import sys
-import time
 from abc import ABC, abstractmethod
 
 import pytest
@@ -39,7 +38,6 @@ def _init_destroy():
     _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
 
     root = _apply()
-    time.sleep(3)
 
     yield root
 
