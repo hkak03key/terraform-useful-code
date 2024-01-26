@@ -3,7 +3,7 @@ import os
 import uuid
 
 import boto3
-from tf_pytest.aws import generate_boto3_session
+from tf_pytest.aws import AwsIAMPolicyTester
 
 import pytest
 
@@ -12,68 +12,63 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
-@pytest.fixture(
-    params=[
-        {
-            "iam_role": "attached",
-            "result": True,
-        },
-        {
-            "iam_role": "not_attached",
-            "result": False,
-        },
-    ]
+class AwsIAMPolicyTesterCloudwatchLogs(AwsIAMPolicyTester):
+    def close(self):
+        pass
+
+    def test(self, log_group_name: str) -> bool:
+        client = self._session.client("logs")
+        logs_stream_name = str(uuid.uuid4())
+
+        try:
+            response = client.create_log_stream(
+                logGroupName=log_group_name,
+                logStreamName=logs_stream_name,
+            )
+
+            response = client.put_log_events(
+                logGroupName=log_group_name,
+                logStreamName=logs_stream_name,
+                logEvents=[
+                    {
+                        "timestamp": 0,
+                        "message": "test",
+                    },
+                ],
+            )
+            return True
+
+        except Exception as e:
+            _logger.info(e)
+            return False
+
+
+@pytest.mark.parametrize(
+    "iam_role, expect",
+    [
+        (d["iam_role"], d["expect"])
+        for d in [
+            {
+                "iam_role": "attached",
+                "expect": True,
+            },
+            {
+                "iam_role": "not_attached",
+                "expect": False,
+            },
+        ]
+    ],
 )
-def generate_params(tfstate_skip_apply, request):
+def test_put_log_events(tfstate_skip_apply, request, iam_role, expect):
     root = tfstate_skip_apply
 
-    params = {
-        "pattern": request.param,
-        "result": request.param["result"],
-        "kwargs": {
-            "aws_cloudwatch_log_group": root.module.default.aws_cloudwatch_log_group.default,
-            "aws_iam_role": root.aws_iam_role.defaults[request.param["iam_role"]],
-        },
-    }
+    aws_iam_role = root.aws_iam_role.defaults[iam_role]
 
-    yield params
+    aws_cloudwatch_log_group = root.module.default.aws_cloudwatch_log_group.default
 
-
-def is_possible_to_put_log_events(session, log_group_name):
-    client = session.client("logs")
-    logs_stream_name = str(uuid.uuid4())
-
-    try:
-        response = client.create_log_stream(
-            logGroupName=log_group_name,
-            logStreamName=logs_stream_name,
-        )
-
-        response = client.put_log_events(
-            logGroupName=log_group_name,
-            logStreamName=logs_stream_name,
-            logEvents=[
-                {
-                    "timestamp": 0,
-                    "message": "test",
-                },
-            ],
-        )
-        return True
-
-    except Exception as e:
-        _logger.info(e)
-        return False
-
-
-def test_put_log_events(generate_params):
-    _logger.info("test_put_log_events")
-    _logger.info({"pattern": generate_params["pattern"]})
-
-    params = generate_params
-
-    session = generate_boto3_session(params["kwargs"]["aws_iam_role"].values["arn"])
-
-    result = is_possible_to_put_log_events(session, params["kwargs"]["aws_cloudwatch_log_group"].values["name"])
-
-    assert result == params["result"]
+    with AwsIAMPolicyTesterCloudwatchLogs(
+        **{
+            "aws_iam_role_arn": aws_iam_role.values["arn"],
+        }
+    ) as tester:
+        assert tester.test(aws_cloudwatch_log_group.values["name"]) == expect
