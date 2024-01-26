@@ -31,7 +31,6 @@ def generate_boto3_session(iam_role_arn, region_name=None):
 
 
 class AwsIAMPolicyTester(ABC):
-    @abstractmethod
     def __init__(self, aws_iam_role_arn: str):
         self._session = generate_boto3_session(aws_iam_role_arn)
 

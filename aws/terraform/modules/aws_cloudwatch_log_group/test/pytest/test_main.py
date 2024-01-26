@@ -13,9 +13,6 @@ _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 class AwsIAMPolicyTesterCloudwatchLogs(AwsIAMPolicyTester):
-    def __init__(self, aws_iam_role_arn: str):
-        super().__init__(aws_iam_role_arn)
-
     def close(self):
         pass
 
