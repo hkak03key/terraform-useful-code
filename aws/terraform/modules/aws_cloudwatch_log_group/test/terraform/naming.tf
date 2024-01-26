@@ -1,11 +1,3 @@
-resource "random_string" "module_name_suffix" {
-  length  = 6
-  lower   = true
-  upper   = false
-  special = false
-}
-
-
 locals {
   #======================
   # 命名
@@ -32,7 +24,7 @@ locals {
     join(
       "-",
       compact([
-        random_string.module_name_suffix.result,
+        var.name_prefix,
         local.append_module_name_to_name_prefix ? local._module_name : "",
       ])
     ), "_", "-"
