@@ -28,6 +28,7 @@ class Node(ABC):
             "state": self._state,
         }.__repr__()
 
+
 class NodeResources(Node):
     def __init__(self, address, state):
         super().__init__(address, state)
