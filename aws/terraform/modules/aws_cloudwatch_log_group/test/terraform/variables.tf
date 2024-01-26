@@ -18,6 +18,12 @@ variable "env" {
 }
 
 
+variable "name_prefix" {
+  type    = string
+  default = ""
+}
+
+
 variable "aws_iam_policy_infos_dir" {
   type = string
 }
