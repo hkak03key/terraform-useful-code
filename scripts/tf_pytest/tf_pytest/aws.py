@@ -2,7 +2,6 @@ import logging
 import os
 import uuid
 from abc import ABC, abstractmethod
-from functools import singledispatchmethod
 
 import boto3
 
