@@ -1,13 +1,12 @@
 import logging
 import os
 import uuid
-from abc import ABC, abstractmethod
 from functools import singledispatchmethod
 
-import boto3
-from tf_pytest.aws import generate_boto3_session
+from tf_pytest.aws import AwsIAMPolicyTester
 from typing_extensions import override
 
+import boto3
 import pytest
 
 # logger
@@ -15,24 +14,13 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
-class AwsIAMPolicyTester(ABC):
-    @abstractmethod
-    def __init__(self):
-        pass
 
-    @abstractmethod
-    def __del__(self):
-        pass
 
-    @singledispatchmethod
-    @abstractmethod
-    def test(self):
-        pass
 
 
 class AwsIAMPolicyTesterS3Write(AwsIAMPolicyTester):
-    def __init__(self):
-        pass
+    def __init__(self, aws_iam_role_arn: str):
+        super().__init__(aws_iam_role_arn)
 
     def __del__(self):
         pass
@@ -43,15 +31,14 @@ class AwsIAMPolicyTesterS3Write(AwsIAMPolicyTester):
         raise NotImplementedError(f"This {type(self).__name__} does not implement test().")
 
     @test.register
-    def _test_impl(self, iam_role_name: str, bucket_name: str, object_key: str) -> bool:
+    def _test_impl(self, bucket_name: str, object_key: str) -> bool:
         try:
-            session = generate_boto3_session(iam_role_name)
-            s3 = session.client("s3")
+            s3 = self._session.client("s3")
             s3.put_object(Bucket=bucket_name, Key=object_key, Body="test")
             s3.delete_object(Bucket=bucket_name, Key=object_key)
             return True
         except Exception as e:
-            _logger.error(e)
+            _logger.info(e)
             return False
 
 
@@ -83,14 +70,15 @@ def test_write_object(tfstate_skip_apply, request, iam_role, expect):
 
     object_key = str(uuid.uuid4())
 
-    tester = AwsIAMPolicyTesterS3Write()
+    tester = AwsIAMPolicyTesterS3Write(**{"aws_iam_role_arn": aws_iam_role.values["arn"]})
 
-    assert tester.test(aws_iam_role.values["arn"], aws_s3_bucket.values["bucket"], object_key) == expect
+    assert tester.test(aws_s3_bucket.values["bucket"], object_key) == expect
 
 
 class AwsIAMPoliyTesterS3Read(AwsIAMPolicyTester):
-    def __init__(self, aws_s3_bucket_name: str, aws_s3_object_key: str):
-        _logger.info("__init__()")
+    def __init__(self, aws_iam_role_arn: str, aws_s3_bucket_name: str, aws_s3_object_key: str):
+        super().__init__(aws_iam_role_arn)
+
         self._aws_s3_bucket_name = aws_s3_bucket_name
         self._aws_s3_object_key = aws_s3_object_key
 
@@ -98,24 +86,16 @@ class AwsIAMPoliyTesterS3Read(AwsIAMPolicyTester):
         client.put_object(Bucket=self._aws_s3_bucket_name, Key=self._aws_s3_object_key, Body="test")
 
     def __del__(self):
-        _logger.info("__del__()")
         client = boto3.client("s3")
         client.delete_object(Bucket=self._aws_s3_bucket_name, Key=self._aws_s3_object_key)
 
-    @singledispatchmethod
-    @override
     def test(self):
-        raise NotImplementedError(f"This {type(self).__name__} does not implement test().")
-
-    @test.register
-    def _test_impl(self, iam_role_name: str):
         try:
-            session = generate_boto3_session(iam_role_name)
-            s3 = session.client("s3")
+            s3 = self._session.client("s3")
             s3.get_object(Bucket=self._aws_s3_bucket_name, Key=self._aws_s3_object_key)
             return True
         except Exception as e:
-            _logger.error(e)
+            _logger.info(e)
             return False
 
 
@@ -149,9 +129,10 @@ def test_read_object(tfstate_skip_apply, request, iam_role, expect):
 
     tester = AwsIAMPoliyTesterS3Read(
         **{
+            "aws_iam_role_arn": aws_iam_role.values["arn"],
             "aws_s3_bucket_name": aws_s3_bucket.values["bucket"],
             "aws_s3_object_key": object_key,
         }
     )
 
-    assert tester.test(aws_iam_role.values["arn"]) == expect
+    assert tester.test() == expect

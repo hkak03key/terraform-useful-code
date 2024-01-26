@@ -3,6 +3,9 @@ import uuid
 
 import boto3
 
+from abc import ABC, abstractmethod
+from functools import singledispatchmethod
+
 
 def generate_boto3_session(iam_role_arn, region_name=None):
     _region_name = region_name if region_name else os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
@@ -21,3 +24,18 @@ def generate_boto3_session(iam_role_arn, region_name=None):
         region_name=_region_name,
     )
     return session
+
+
+class AwsIAMPolicyTester(ABC):
+    @abstractmethod
+    def __init__(self, aws_iam_role_arn: str):
+        self._session = generate_boto3_session(aws_iam_role_arn)
+
+    @abstractmethod
+    def __del__(self):
+        pass
+
+    @singledispatchmethod
+    @abstractmethod
+    def test(self):
+        pass
