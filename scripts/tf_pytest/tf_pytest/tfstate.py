@@ -170,7 +170,7 @@ class NodeCategoryModule(NodeCategory):
         ]
 
         if len(modules) == 1:
-            return NodeInstanceModule(target_addr, resources[0], self.category)
+            return NodeInstanceModule(target_addr, modules[0], self.category)
 
         if len(modules) >= 2:
             node_list = NodeListInstanceModule([NodeInstanceModule(m["address"], m, self.category) for m in modules])
