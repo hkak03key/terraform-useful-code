@@ -1,0 +1,119 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyExcludingReadActionForS3Bucket",
+            "Effect": "Deny",
+            "Principal": "*",
+            "NotAction": [
+                "s3:List*",
+                "s3:Get*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket_name}"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": ${jsonencode(toset(flatten([
+                        aws_account_id,
+                        admin_aws_iam_principal_unique_ids,
+                    ])))}
+                }
+            }
+        },
+        {
+            "Sid": "DenyReadActionForS3Bucket",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:List*",
+                "s3:Get*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket_name}"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": ${jsonencode(toset(flatten([
+                        aws_account_id,
+                        admin_aws_iam_principal_unique_ids,
+                        user_aws_iam_principal_unique_ids,
+                        readonly_user_aws_iam_principal_unique_ids,
+                    ])))}
+                }
+            }
+        },
+        {
+            "Sid": "DenyAdminActionForS3Object",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:PutObjectAcl",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectVersionAcl"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket_name}/*"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": ${jsonencode(toset(flatten([
+                        aws_account_id,
+                        admin_aws_iam_principal_unique_ids,
+                    ])))}
+                }
+            }
+        },
+        {
+            "Sid": "DenyWriteActionForS3Object",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:Put*",
+                "s3:*MultipartUpload*",
+                "s3:Delete*"
+
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket_name}/*"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": ${jsonencode(toset(flatten([
+                        aws_account_id,
+                        admin_aws_iam_principal_unique_ids,
+                        user_aws_iam_principal_unique_ids,
+                    ])))}
+                }
+            }
+        },
+        {
+            "Sid": "DenyExcludingAdminAndWriteActionForS3Object",
+            "Effect": "Deny",
+            "Principal": "*",
+            "NotAction": [
+                "s3:PutObjectAcl",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectVersionAcl",
+                "s3:Put*",
+                "s3:*MultipartUpload*",
+                "s3:Delete*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket_name}/*"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": ${jsonencode(toset(flatten([
+                        aws_account_id,
+                        admin_aws_iam_principal_unique_ids,
+                        user_aws_iam_principal_unique_ids,
+                        readonly_user_aws_iam_principal_unique_ids,
+                    ])))}
+                }
+            }
+        }
+    ]
+}
