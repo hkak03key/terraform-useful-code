@@ -66,7 +66,7 @@ locals {
   # }
 }
 
-resource "aws_subnet" "these" {
+resource "aws_subnet" "defaults" {
   for_each = merge(flatten([
     for subnet_group_name, subnet_group in local.subnet_configures_group_by :
     [
@@ -97,7 +97,7 @@ locals {
       for az in local.subnet_group_azs[subnet_group_name] :
       az => [
         for index in range(length(local.subnet_configures_group_by[subnet_group_name][az])) :
-        aws_subnet.these["${subnet_group_name}-${az}-${index}"]
+        aws_subnet.defaults["${subnet_group_name}-${az}-${index}"]
       ]
     }
   }
