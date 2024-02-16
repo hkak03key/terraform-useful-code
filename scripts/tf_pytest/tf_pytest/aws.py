@@ -29,9 +29,9 @@ def generate_boto3_session(iam_role_arn, region_name=None):
     return session
 
 
-class AwsIAMPolicyTester(ABC):
-    def __init__(self, aws_iam_role_arn: str):
-        self._session = generate_boto3_session(aws_iam_role_arn)
+class AwsTester(ABC):
+    def __init__(self):
+        super().__init__()
 
     def __enter__(self):
         return self
@@ -42,6 +42,20 @@ class AwsIAMPolicyTester(ABC):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    @abstractmethod
+    def test(self):
+        pass
+
+
+class AwsIAMPolicyTester(AwsTester):
+    def __init__(self, aws_iam_role_arn: str):
+        self._session = generate_boto3_session(aws_iam_role_arn)
+        super().__init__()
+
+    @abstractmethod
+    def close(self):
+        pass
 
     @abstractmethod
     def test(self):
