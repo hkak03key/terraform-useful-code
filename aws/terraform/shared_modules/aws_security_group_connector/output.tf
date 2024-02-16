@@ -1,3 +1,3 @@
-output "aws_subnets" {
-  value = local.aws_subnets
+output "aws_security_group" {
+  value = aws_security_group.default
 }

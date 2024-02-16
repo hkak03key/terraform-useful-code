@@ -40,16 +40,64 @@ variable "aws_vpc" {
   })
 }
 
-variable "available_cidr_block" {
-  type = string
+
+variable "ingress_aws_security_groups" {
+  type = list(any)
+
+  default = []
+
+  validation {
+    error_message = "The element of ingress_aws_security_groups must be a aws_security_group resource."
+    condition = alltrue([
+      for sg in var.ingress_aws_security_groups :
+      try(regex("^arn:aws:ec2:.*:security-group/.*", sg.arn), null) != null
+    ])
+  }
+
+  validation {
+    error_message = "The element of ingress_aws_security_groups must have tags[\"Name\"] attribute."
+    condition = alltrue([
+      for sg in var.ingress_aws_security_groups :
+      try(sg.tags["Name"], null) != null
+    ])
+  }
+
+  validation {
+    error_message = "The element of ingress_aws_security_groups must be craeted by aws_security_group_connector module."
+    condition = alltrue([
+      for sg in var.ingress_aws_security_groups :
+      try(sg.tags["aws_security_group_connector"], null) == "true"
+    ])
+  }
 }
 
 
-variable "subnet_configures" {
-  type = list(object({
-    subnet_group_name       = string
-    subnet_mask             = number
-    az                      = string
-    map_public_ip_on_launch = bool
-  }))
+variable "egress_aws_security_groups" {
+  type = list(any)
+
+  default = []
+
+  validation {
+    error_message = "The element of egress_aws_security_groups must be a aws_security_group."
+    condition = alltrue([
+      for sg in var.egress_aws_security_groups :
+      try(regex("^arn:aws:ec2:.*:security-group/.*", sg.arn), null) != null
+    ])
+  }
+
+  validation {
+    error_message = "The element of egress_aws_security_groups must have tags[\"Name\"] attribute."
+    condition = alltrue([
+      for sg in var.egress_aws_security_groups :
+      try(sg.tags["Name"], null) != null
+    ])
+  }
+
+  validation {
+    error_message = "The element of egress_aws_security_groups must be craeted by aws_security_group_connector module."
+    condition = alltrue([
+      for sg in var.egress_aws_security_groups :
+      try(sg.tags["aws_security_group_connector"], null) == "true"
+    ])
+  }
 }
