@@ -34,22 +34,15 @@ DESC
 }
 
 
-variable "aws_vpc" {
-  type = object({
-    id = string
-  })
-}
-
-variable "available_cidr_block" {
+variable "cidr_block" {
   type = string
 }
 
 
-variable "subnet_configures" {
+variable "subnets" {
   type = list(object({
-    subnet_group_name       = string
-    subnet_mask             = number
-    az                      = string
-    map_public_ip_on_launch = bool
+    subnet_group_name = string
+    subnet_mask       = number
+    az                = string
   }))
 }
