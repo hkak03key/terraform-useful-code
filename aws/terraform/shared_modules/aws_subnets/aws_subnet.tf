@@ -48,6 +48,7 @@ locals {
   }
 }
 
+
 resource "aws_subnet" "defaults" {
   for_each = merge(flatten([
     for subnet_group_name, subnet_group in local.subnets_group_by :
@@ -79,6 +80,7 @@ resource "aws_subnet" "defaults" {
     )
   }
 }
+
 
 locals {
   #  aws_subnets[subnet_group_name][az][index] でアクセスできるようにする

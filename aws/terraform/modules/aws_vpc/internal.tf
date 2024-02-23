@@ -34,6 +34,7 @@ resource "aws_network_acl" "internal" {
   }
 }
 
+
 resource "aws_network_acl_association" "internal" {
   for_each = {
     for subnet in local.aws_subnets_flattened_each_groups["internal"] :
