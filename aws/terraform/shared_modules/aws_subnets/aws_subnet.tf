@@ -5,75 +5,63 @@ locals {
   cidr_blocks = cidrsubnets(
     var.available_cidr_block,
     [
-      for subnet in var.subnet_configures :
+      for subnet in var.subnets :
       subnet.subnet_mask - local.available_subnet_mask
     ]...
   )
 
-  subnet_configures = [
+  subnet_groups = {
+    for subnet_group in var.subnet_groups :
+    subnet_group.name => subnet_group
+  }
+
+  subnets = [
     for index, subnet in {
-      for index in range(length(var.subnet_configures)) :
-      index => var.subnet_configures[index]
+      for index in range(length(var.subnets)) :
+      index => var.subnets[index]
     } :
     {
-      subnet_group_name       = subnet.subnet_group_name
-      az                      = subnet.az
-      map_public_ip_on_launch = subnet.map_public_ip_on_launch
-      cidr_block              = local.cidr_blocks[index]
+      subnet_group_name = subnet.subnet_group_name
+      az                = subnet.az
+      cidr_block        = local.cidr_blocks[index]
     }
   ]
 
   # subnetごとに名前を付与するために subnet_group_name と az で group by していく
-  subnet_group_names = distinct([
-    for subnet in var.subnet_configures :
-    subnet["subnet_group_name"]
-  ])
-
   subnet_group_azs = {
-    for subnet_group_name in local.subnet_group_names :
+    for subnet_group_name in keys(local.subnet_groups) :
     subnet_group_name => distinct([
-      for subnet in var.subnet_configures :
+      for subnet in var.subnets :
       subnet["az"] if subnet["subnet_group_name"] == subnet_group_name
     ])
   }
 
-  subnet_configures_group_by = {
-    for subnet_group_name in local.subnet_group_names :
+  subnets_group_by = {
+    for subnet_group_name in keys(local.subnet_groups) :
     subnet_group_name => {
       for az in local.subnet_group_azs[subnet_group_name] :
       az => [
-        for subnet in local.subnet_configures :
+        for subnet in local.subnets :
         subnet if subnet["subnet_group_name"] == subnet_group_name && subnet["az"] == az
       ]
     }
   }
-
-  # # indexを付与
-  # subnet_configures_group_by_with_index = {
-  #   for subnet_group_name in local.subnet_group_names :
-  #   subnet_group_name => [
-  #     for az in local.subnet_group_azs[subnet_group_name] :
-  #     {
-  #       az => [
-  #         for index in range(length(local.subnet_configures_group_by[subnet_group_name][az])) :
-  #         merge(
-  #           local.subnet_configures_group_by[subnet_group_name][az][index],
-  #           { index = index }
-  #         )
-  #       ]
-  #     }
-  #   ]
-  # }
 }
+
 
 resource "aws_subnet" "defaults" {
   for_each = merge(flatten([
-    for subnet_group_name, subnet_group in local.subnet_configures_group_by :
+    for subnet_group_name, subnet_group in local.subnets_group_by :
     [
       for az, subnets in subnet_group :
       {
         for index in range(length(subnets)) :
-        "${subnet_group_name}-${az}-${index}" => subnets[index]
+        "${subnet_group_name}_${az}_${index}" => merge(
+          subnets[index],
+          {
+            index = index
+          }
+        )
       }
     ]
   ])...)
@@ -82,24 +70,28 @@ resource "aws_subnet" "defaults" {
   cidr_block        = each.value["cidr_block"]
   availability_zone = "${local.region}${each.value["az"]}"
 
-  map_public_ip_on_launch = each.value["map_public_ip_on_launch"]
+  map_public_ip_on_launch = local.subnet_groups[each.value["subnet_group_name"]].map_public_ip_on_launch
 
   tags = {
-    Name = each.key
+    Name = replace(
+      join("-", [local.name_prefix, each.value["subnet_group_name"], each.value["az"], each.value["index"]]),
+      "_",
+      "-"
+    )
   }
 }
+
 
 locals {
   #  aws_subnets[subnet_group_name][az][index] でアクセスできるようにする
   aws_subnets = {
-    for subnet_group_name in local.subnet_group_names :
+    for subnet_group_name in keys(local.subnet_groups) :
     subnet_group_name => {
       for az in local.subnet_group_azs[subnet_group_name] :
       az => [
-        for index in range(length(local.subnet_configures_group_by[subnet_group_name][az])) :
-        aws_subnet.defaults["${subnet_group_name}-${az}-${index}"]
+        for index in range(length(local.subnets_group_by[subnet_group_name][az])) :
+        aws_subnet.defaults["${subnet_group_name}_${az}_${index}"]
       ]
     }
   }
 }
-

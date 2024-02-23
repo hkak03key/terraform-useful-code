@@ -6,24 +6,8 @@ module "default" {
   aws_iam_policy_infos_dir = local.aws_iam_policy_infos_dir
   name_prefix              = local.name_prefix
 
-  aws_vpc = aws_vpc.default
+  cidr_block = "10.0.0.0/16"
 
-  available_cidr_block = aws_vpc.default.cidr_block
-
-  subnet_groups = [
-    {
-      name                    = "front"
-      map_public_ip_on_launch = true
-    },
-    {
-      name                    = "app"
-      map_public_ip_on_launch = false
-    },
-    {
-      name                    = "internal"
-      map_public_ip_on_launch = false
-    },
-  ]
   subnets = [
     {
       subnet_group_name = "front"
@@ -56,4 +40,8 @@ module "default" {
       az                = "c"
     },
   ]
+
+  nat = {
+    az = "ALL"
+  }
 }

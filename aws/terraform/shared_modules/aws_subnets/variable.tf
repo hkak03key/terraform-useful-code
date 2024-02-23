@@ -45,11 +45,42 @@ variable "available_cidr_block" {
 }
 
 
-variable "subnet_configures" {
+variable "subnet_groups" {
   type = list(object({
-    subnet_group_name       = string
-    subnet_mask             = number
-    az                      = string
+    name                    = string
     map_public_ip_on_launch = bool
   }))
+
+  validation {
+    error_message = "var.subnet_groups[*].name must be unique."
+    condition     = length(var.subnet_groups) == length(distinct(var.subnet_groups[*].name))
+  }
+}
+
+
+variable "subnets" {
+  type = list(object({
+    subnet_group_name = string
+    subnet_mask       = number
+    az                = string
+  }))
+}
+
+
+#======================
+# validate
+resource "null_resource" "check_subnet_groups_and_subnets" {
+  triggers = {
+    subnet_groups = jsonencode(var.subnet_groups)
+    subnets       = jsonencode(var.subnets)
+  }
+
+  lifecycle {
+    precondition {
+      condition = alltrue([
+        for subnet in var.subnets : contains(var.subnet_groups[*].name, subnet.subnet_group_name)
+      ])
+      error_message = "each subnet_group_name of var.subnets must be one of var.subnet_groups[*].name: ${jsonencode(var.subnet_groups[*].name)}."
+    }
+  }
 }
