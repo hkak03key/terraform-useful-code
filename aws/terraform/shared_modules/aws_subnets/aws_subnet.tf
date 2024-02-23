@@ -55,7 +55,12 @@ resource "aws_subnet" "defaults" {
       for az, subnets in subnet_group :
       {
         for index in range(length(subnets)) :
-        "${subnet_group_name}_${az}_${index}" => subnets[index]
+        "${subnet_group_name}_${az}_${index}" => merge(
+          subnets[index],
+          {
+            index = index
+          }
+        )
       }
     ]
   ])...)
@@ -67,7 +72,11 @@ resource "aws_subnet" "defaults" {
   map_public_ip_on_launch = local.subnet_groups[each.value["subnet_group_name"]].map_public_ip_on_launch
 
   tags = {
-    Name = each.key
+    Name = replace(
+      join("-", [local.name_prefix, each.value["subnet_group_name"], each.value["az"], each.value["index"]]),
+      "_",
+      "-"
+    )
   }
 }
 
