@@ -40,4 +40,8 @@ module "default" {
       az                = "c"
     },
   ]
+
+  nat = {
+    az = "ALL"
+  }
 }

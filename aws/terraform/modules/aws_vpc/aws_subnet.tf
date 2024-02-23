@@ -30,3 +30,21 @@ module "aws_subnets" {
   ]
   subnets = var.subnets
 }
+
+
+locals {
+  aws_subnets_flattened_each_groups = {
+    for group in keys(module.aws_subnets.aws_subnets) :
+    group => flatten([
+      for az in keys(module.aws_subnets.aws_subnets[group]) :
+      [
+        for index in range(length(module.aws_subnets.aws_subnets[group][az])) :
+        {
+          az         = az
+          index      = index
+          aws_subnet = module.aws_subnets.aws_subnets[group][az][index]
+        }
+      ]
+    ])
+  }
+}

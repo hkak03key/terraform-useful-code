@@ -46,3 +46,10 @@ variable "subnets" {
     az                = string
   }))
 }
+
+
+variable "nat" {
+  type = object({
+    az = string # "ALL" or az name ("a", "c", etc...)
+  })
+}
