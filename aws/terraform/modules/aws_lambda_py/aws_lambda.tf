@@ -120,10 +120,12 @@ locals {
     templatefile(
       "${var.aws_iam_policy_infos_dir}/lambda_exec.json.tftpl",
       {
-        aws_account_id                     = local.aws_account_id # iam policyが作成されるawsアカウントID
-        aws_lambda_function_aws_account_id = local.aws_account_id # アクセスしたいlambda functionが存在するawsアカウントID
-        aws_lambda_function_region         = local.region
-        aws_lambda_function_function_name  = local.aws_lambda_function_function_name
+        # iam policyに関する情報
+        iam_policy_aws_account_id = local.aws_account_id
+        # アクセスしたいリソースに関する情報
+        resource_aws_account_id = local.aws_account_id
+        resource_region         = local.region
+        resource_name           = local.aws_lambda_function_function_name
       }
     )
   )
