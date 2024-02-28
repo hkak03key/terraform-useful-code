@@ -110,3 +110,32 @@ resource "aws_iam_role_policy_attachment" "default" {
   role       = aws_iam_role.default.name
   policy_arn = each.value
 }
+
+
+/*
+iam policy
+*/
+locals {
+  _aws_iam_policy_aws_lambda_function_default = jsondecode(
+    templatefile(
+      "${var.aws_iam_policy_infos_dir}/lambda_exec.json.tftpl",
+      {
+        aws_account_id                     = local.aws_account_id # iam policyが作成されるawsアカウントID
+        aws_lambda_function_aws_account_id = local.aws_account_id # アクセスしたいlambda functionが存在するawsアカウントID
+        aws_lambda_function_region         = local.region
+        aws_lambda_function_function_name  = local.aws_lambda_function_function_name
+      }
+    )
+  )
+}
+
+
+resource "aws_iam_policy" "lambda_exec" {
+  name        = local._aws_iam_policy_aws_lambda_function_default["name"]
+  path        = "/"
+  description = ""
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode(local._aws_iam_policy_aws_lambda_function_default["policy"])
+}
