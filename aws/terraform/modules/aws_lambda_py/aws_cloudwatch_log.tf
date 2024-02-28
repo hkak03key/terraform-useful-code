@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "default" {
-  name = local.name_prefix
+  name = "/aws/lambda/${local.aws_lambda_function_function_name}"
 
   retention_in_days = 30 # FIXME
 }
@@ -20,7 +20,7 @@ locals {
 }
 
 
-resource "aws_iam_policy" "default" {
+resource "aws_iam_policy" "logs_log" {
   name        = local._aws_iam_policy_aws_cloudwatch_log_group_default["name"]
   path        = "/"
   description = ""
