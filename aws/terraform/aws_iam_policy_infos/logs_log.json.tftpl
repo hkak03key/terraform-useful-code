@@ -17,10 +17,10 @@
               }[aws_cloudwatch_log_group_region]
               : ""
             ),
-            aws_cloudwatch_log_group_name,
+            replace(aws_cloudwatch_log_group_name, "/", "-"),
           ])
         ),
-        "/[_/]*",
+        "/[-_/]+/",
         "-"
       )
     }",
