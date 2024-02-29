@@ -1,0 +1,44 @@
+{
+    "name": "${
+      replace(
+        join(
+          "-",
+          compact([
+            "lambda-exec",
+            (
+              iam_policy_aws_account_id != resource_aws_account_id
+              ? resource_aws_account_id
+              : ""
+            ),
+            (
+              resource_region != "*"
+              ? {
+                "ap-northeast-1" = "apn1"
+              }[resource_region]
+              : ""
+            ),
+            resource_name,
+          ])
+        ),
+        "/[-_/]+/",
+        "-"
+      )
+    }",
+    "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "lambda:Invoke*",
+                    "lambda:Get*",
+                    "lambda:List*"
+                ],
+                "Resource": [
+                    "arn:aws:lambda:${resource_region}:${resource_aws_account_id}:function:${resource_name}",
+                    "arn:aws:lambda:${resource_region}:${resource_aws_account_id}:function:${resource_name}:*"
+                ]
+            }
+        ]
+    }
+}
