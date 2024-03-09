@@ -4,12 +4,8 @@
 module "aws_s3_bucket_core" {
   source = "../aws_s3_bucket_core"
 
-  system_name = var.system_name
-  env         = var.env
-
-  aws_iam_policy_infos_dir = var.aws_iam_policy_infos_dir
-
-  name_prefix = local.name_prefix
+  _system_info              = var._system_info
+  _module_hierarchical_info = var._module_hierarchical_info
 
   depends_on = [
     module.aws_kms,
