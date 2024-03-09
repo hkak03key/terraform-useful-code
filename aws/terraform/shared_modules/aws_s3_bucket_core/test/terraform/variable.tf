@@ -1,6 +1,6 @@
 #======================
 # variables
-variable "aws_account_name" {
+variable "account_name" {
   type    = string
   default = null
 }
@@ -14,13 +14,13 @@ variable "system_name" {
 
 variable "env" {
   type    = string
-  default = "test"
+  default = null
 }
 
 
 variable "name_prefix" {
   type    = string
-  default = ""
+  default = null
 }
 
 
@@ -31,31 +31,31 @@ variable "aws_iam_policy_infos_dir" {
 
 #======================
 # validate
-resource "null_resource" "check_aws_account_name" {
+resource "null_resource" "check_account_name" {
   triggers = {
-    aws_account_name = var.aws_account_name
-    system_name      = var.system_name
-    env              = var.env
+    account_name = var.account_name
+    system_name  = var.system_name
+    env          = var.env
   }
 
   lifecycle {
     precondition {
-      error_message = "var.aws_account_name must be any one of following: \"$${var.system_name}\", \"$${var.system_name}-$${var.env}\" and null."
+      error_message = "var.account_name must be any one of following: \"$${var.system_name}\", \"$${var.system_name}-$${var.env}\" and null."
       condition = (
-        var.aws_account_name == null && var.system_name == null
+        var.account_name == null && var.system_name == null
         || (
-          var.aws_account_name != null && var.system_name != null
+          var.account_name != null && var.system_name != null
           && (
-            var.aws_account_name == var.system_name
-            || var.aws_account_name == try("${var.system_name}-${var.env}", null)
+            var.account_name == var.system_name
+            || var.account_name == try(join("-", compact([var.system_name, var.env])), null)
           )
         )
       )
     }
 
     precondition {
-      error_message = "var.aws_account_name must set if var.env set."
-      condition     = !(var.env != "test" && var.aws_account_name == null)
+      error_message = "var.account_name must set if var.env set."
+      condition     = !(var.env != null && var.account_name == null)
     }
   }
 }
@@ -87,7 +87,7 @@ resource "null_resource" "check_env" {
     precondition {
       error_message = "var.env must match with \"^[a-z0-9][a-z0-9-]*[a-z0-9]$\" or null."
       condition = (
-        var.system_name == null
+        var.env == null
         || can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.env))
       )
     }
