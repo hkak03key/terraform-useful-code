@@ -28,7 +28,7 @@ locals {
     ] :
     v => jsondecode(
       templatefile(
-        "${var.aws_iam_policy_infos_dir}/s3_${v}.json.tftpl",
+        "${var._system_info["aws_iam_policy_infos_dir"]}/s3_${v}.json.tftpl",
         {
           aws_s3_bucket_name = aws_s3_bucket.default.bucket
         }

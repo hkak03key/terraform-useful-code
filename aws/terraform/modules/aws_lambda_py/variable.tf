@@ -1,27 +1,20 @@
-# FIXME module名は aws_iam_role_... のようにterraform resource名で始まるようにする
-
-variable "system_name" {
-  type = string
+variable "_system_info" {
+  type = object({
+    env                      = string
+    aws_iam_policy_infos_dir = string
+    name_prefix              = string
+    long_name_prefix         = string
+  })
 }
 
-
-variable "env" {
-  type = string
-}
-
-
-variable "aws_iam_policy_infos_dir" {
-  type = string
-}
-
-
-variable "name_prefix" {
-  type = string
-
-  description = <<DESC
-リソース名に設定されるprefix。
-命名ルールは locals.tf の命名セクションを参照。
-DESC
+variable "_module_hierarchical_info" {
+  type = list(
+    object({
+      module_name                = string
+      append_module_name_to_name = bool
+      name_suffix                = string
+    })
+  )
 }
 
 
@@ -31,6 +24,6 @@ variable "name_suffix" {
 
   description = <<DESC
 リソース名に設定されるsuffix。
-命名ルールは locals.tf の命名セクションを参照。
+命名ルールは _naming_module.tf の命名セクションを参照。
 DESC
 }

@@ -5,7 +5,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 PROJECT_ROOT_PATH=$(cd $(dirname $0); pwd)
 
-BUILD_DIR_PATH="${PROJECT_ROOT_PATH}/.build"
+BUILD_DIR_PATH="${PROJECT_ROOT_PATH}/build"
 
 REUQIREMENTS_PATH="${BUILD_DIR_PATH}/requirements.txt"
 VIRTUALENV_PATH="${BUILD_DIR_PATH}/lambda_layer.venv"

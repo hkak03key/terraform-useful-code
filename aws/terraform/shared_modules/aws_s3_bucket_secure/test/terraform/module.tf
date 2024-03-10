@@ -28,10 +28,8 @@ module "defaults" {
 
   source = "../../"
 
-  system_name              = local.system_name
-  env                      = var.env
-  aws_iam_policy_infos_dir = local.aws_iam_policy_infos_dir
-  name_prefix              = local.name_prefix
+  _system_info              = local._system_info
+  _module_hierarchical_info = local._module_hierarchical_info
 
   name_suffix = each.key != "default" ? each.key : null
 

@@ -46,7 +46,7 @@ lambda function
 data "archive_file" "default" {
   type        = "zip"
   source_dir  = "${path.module}/script/script"
-  output_path = "${path.module}/script/.build/script.zip"
+  output_path = "${path.module}/script/build/script.zip"
 }
 
 
@@ -118,7 +118,7 @@ iam policy
 locals {
   _aws_iam_policy_aws_lambda_function_default = jsondecode(
     templatefile(
-      "${var.aws_iam_policy_infos_dir}/lambda_exec.json.tftpl",
+      "${var._system_info["aws_iam_policy_infos_dir"]}/lambda_exec.json.tftpl",
       {
         # iam policyに関する情報
         iam_policy_aws_account_id = local.aws_account_id

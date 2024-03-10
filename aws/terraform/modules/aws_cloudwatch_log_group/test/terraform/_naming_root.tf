@@ -12,23 +12,30 @@ locals {
   #----------------------
   # 変数
   # defaultではmoduleのディレクトリ名が入るが、任意に変更可能
-  # _module_name = basename(abspath("${path.module}/../../"))
-  _module_name = "s3_secure"
-
-  system_name = (
-    var.system_name != null ?
-    var.system_name :
-    local.aws_account_id
-  )
+  _module_name_for_test = basename(abspath("${path.module}/../../"))
+  module_name           = local._module_name_for_test
 
   name_prefix = replace(
     join(
       "-",
       compact([
+        (
+          var.account_name != null
+          && var.account_name == try(join("-", compact([var.system_name, var.env])), null) ?
+          null :
+          var.env
+        ),
         var.name_prefix,
-        local.append_module_name_to_name_prefix ? local._module_name : "",
+        local.append_module_name_to_name_prefix ? local.module_name : "",
       ])
     ), "_", "-"
   )
-  long_name_prefix = join("-", compact([local.system_name, var.env, local.name_prefix]))
+
+  long_name_prefix = join(
+    "-",
+    compact([
+      var.account_name != null ? var.account_name : local.aws_account_id,
+      local.name_prefix,
+    ])
+  )
 }

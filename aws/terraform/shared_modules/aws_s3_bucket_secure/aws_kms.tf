@@ -7,12 +7,9 @@ module "aws_kms" {
     : 0
   )
 
-  system_name = var.system_name
-  env         = var.env
+  _system_info              = var._system_info
+  _module_hierarchical_info = var._module_hierarchical_info
 
-  aws_iam_policy_infos_dir = var.aws_iam_policy_infos_dir
-
-  name_prefix = local.name_prefix
   name_suffix = "s3"
 
   admin_aws_iam_principals = local.admin_aws_iam_principals
