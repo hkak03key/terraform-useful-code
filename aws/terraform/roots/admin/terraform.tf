@@ -14,9 +14,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      env = var.env
+      env               = var.env
       github_repository = "https://github.com/hkak03key/terraform-useful-code"
-      terraform_root = "admin"
+      terraform_root    = "admin"
     }
   }
 }
