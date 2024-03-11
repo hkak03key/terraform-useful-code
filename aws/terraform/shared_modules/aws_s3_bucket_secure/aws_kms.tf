@@ -7,7 +7,7 @@ module "aws_kms" {
     : 0
   )
 
-  _system_info              = var._system_info
+  _system_info              = local._system_info
   _module_hierarchical_info = var._module_hierarchical_info
 
   name_suffix = "s3"
