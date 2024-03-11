@@ -12,8 +12,8 @@ locals {
   #----------------------
   # 変数
   # defaultではmoduleのディレクトリ名が入るが、任意に変更可能
-  _module_name_for_test = basename(abspath("${path.module}/../../"))
-  module_name           = local._module_name_for_test
+  _module_default_name = basename(abspath(path.module))
+  module_name          = local._module_default_name
 
   name_prefix = replace(
     join(
