@@ -1,8 +1,8 @@
 module "aws_s3_bucket_secure" {
   source = "../../../../shared_modules/aws_s3_bucket_secure"
 
-  _system_info              = var._system_info
-  _module_hierarchical_info = var._module_hierarchical_info
+  _system_info              = local._system_info
+  _module_hierarchical_info = local._module_hierarchical_info
 
   name_suffix = random_password.aws_s3_bucket_secure_suffix.result
 

@@ -118,7 +118,7 @@ iam policy
 locals {
   _aws_iam_policy_aws_lambda_function_default = jsondecode(
     templatefile(
-      "${var._system_info["aws_iam_policy_infos_dir"]}/lambda_exec.json.tftpl",
+      "${local._system_info["aws_iam_policy_infos_dir"]}/lambda_exec.json.tftpl",
       {
         # iam policyに関する情報
         iam_policy_aws_account_id = local.aws_account_id

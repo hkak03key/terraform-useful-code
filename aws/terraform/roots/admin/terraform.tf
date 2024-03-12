@@ -9,6 +9,20 @@ terraform {
 }
 
 
+terraform {
+  backend "s3" {
+  }
+}
+
+
 provider "aws" {
   region = "ap-northeast-1"
+
+  default_tags {
+    tags = {
+      env               = var.env
+      github_repository = "https://github.com/hkak03key/terraform-useful-code"
+      terraform_root    = "admin"
+    }
+  }
 }
