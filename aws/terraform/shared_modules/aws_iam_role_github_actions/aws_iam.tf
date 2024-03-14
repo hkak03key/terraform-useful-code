@@ -1,4 +1,4 @@
-resource "aws_iam_role" "this" {
+resource "aws_iam_role" "default" {
   name = local.long_name_prefix
 
   assume_role_policy = jsonencode({
@@ -27,6 +27,6 @@ resource "aws_iam_role_policy_attachment" "these" {
     for v in var.aws_iam_policies : v.name => v.arn
   }
 
-  role       = aws_iam_role.this.name
+  role       = aws_iam_role.default.name
   policy_arn = each.value
 }
