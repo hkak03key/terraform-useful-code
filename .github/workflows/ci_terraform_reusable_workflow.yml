@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.2
       - name: PWD
         run: pwd
       - name: Masking
@@ -120,7 +120,7 @@ jobs:
             exit 1
           fi
       - name: Configure AWS credentials from IAM Role
-        uses: aws-actions/configure-aws-credentials@v2.0.0
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.aws-account-id }}:role/${{ secrets.aws-iam-role-name }}
           aws-region: ${{ inputs.aws-region }}
