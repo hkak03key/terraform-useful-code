@@ -45,8 +45,12 @@ variable "admin_aws_iam_principals" {
     condition = alltrue([
       for p in var.admin_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(user|role)", p.arn), null) != null
+      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
-    error_message = "The arn of element of admin_aws_iam_principals must be a arn of IAM User or Role."
+    error_message = <<MSG
+The arn of element of admin_aws_iam_principals must be a arn of IAM User or Role.
+(provided value: ${jsonencode(var.admin_aws_iam_principals[*].arn)})
+MSG
   }
 
   description = <<DESC
@@ -70,8 +74,12 @@ variable "user_aws_iam_principals" {
     condition = alltrue([
       for p in var.user_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(root|user|role)", p.arn), null) != null
+      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
-    error_message = "The arn of element of user_aws_iam_principals must be a arn of IAM Root, User or Role."
+    error_message = <<MSG
+The arn of element of user_aws_iam_principals must be a arn of IAM Root, User or Role.
+(provided value: ${jsonencode(var.user_aws_iam_principals[*].arn)})
+MSG
   }
 
   description = <<DESC
