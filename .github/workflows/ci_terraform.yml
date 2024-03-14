@@ -1,0 +1,54 @@
+name: CI Terraform
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - aws/terraform/**
+      - .github/workflows/ci_terraform*
+
+
+jobs:
+  check_terraform_format:
+    name: check terraform format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Terraform
+        working-directory: .
+        run: ./scripts/install_terraform.sh
+      - name: Terraform Fmt
+        run: terraform fmt -check -recursive
+
+  ci_terraform_admin:
+    name: ci terraform admin
+    needs: check_terraform_format
+    uses: ./.github/workflows/ci_terraform_reusable_workflow.yml
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    with:
+      working-dir: aws/terraform/roots/admin
+      aws-region: ap-northeast-1
+      tfcmt-target: admin
+      tfcmt-is-masking: true
+
+    secrets:
+      aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
+      aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+      aws-iam-role-name: ${{ secrets.AWS_ACCOUNT_NAME }}-admin-github-actions-admin-ci
+      terraform-backend-config-content: |-
+        bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin"
+        key            = "terraform.tfstate"
+        dynamodb_table = "admin-terraform-backend-admin"
+      terraform-var-file-content: |-
+        aws_iam_policy_infos_dir = "../../aws_iam_policy_infos"
+        account_name             = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        system_name              = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        # env         = null
+        # nam_prefix  = null
