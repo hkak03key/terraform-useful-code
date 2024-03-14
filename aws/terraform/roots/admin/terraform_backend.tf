@@ -17,4 +17,11 @@ module "terraform_backend_admin" {
   ]
   read_aws_iam_principals = [
   ]
+
+  aws_iam_role_github_actions_ci = {
+    aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
+    aws_iam_policies = [
+      data.aws_iam_policy.aws_managed["ReadOnlyAccess"],
+    ]
+  }
 }

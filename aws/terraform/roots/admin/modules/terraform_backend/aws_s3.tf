@@ -8,7 +8,10 @@ module "aws_s3_bucket_secure" {
 
   admin_aws_iam_principals     = var.admin_aws_iam_principals
   readwrite_aws_iam_principals = var.readwrite_aws_iam_principals
-  read_aws_iam_principals      = var.read_aws_iam_principals
+  read_aws_iam_principals = flatten([
+    var.read_aws_iam_principals,
+    module.aws_iam_role_github_actions_ci.aws_iam_role,
+  ])
 
   server_side_encryption = {
     sse_algorithm = "aws:kms"

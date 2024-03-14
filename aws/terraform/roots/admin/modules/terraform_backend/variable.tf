@@ -124,3 +124,11 @@ variable "read_aws_iam_principals" {
     error_message = "Either unique_id or user_id must be specified."
   }
 }
+
+
+variable "aws_iam_role_github_actions_ci" {
+  type = object({
+    aws_iam_openid_connect_provider = any
+    aws_iam_policies                = list(any)
+  })
+}
