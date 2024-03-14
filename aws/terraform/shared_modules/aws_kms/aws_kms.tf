@@ -34,13 +34,16 @@ locals {
 
 data "aws_iam_policy_document" "kms_policy" {
   source_policy_documents = flatten([
-    # root access / iam policy access
+    # root access
+    data.aws_iam_policy_document.enable_root_access_kms_policy.json,
+    # iam policy access
     var.enable_access_with_iam_policy == true ? [
-      # the policy of iam policy access includes root access
       data.aws_iam_policy_document.enable_access_with_iam_policy_kms_policy.json,
-      ] : [
-      data.aws_iam_policy_document.enable_root_access_kms_policy.json,
-    ],
+      ] : (
+      var.enable_read_access_with_iam_policy == true ? [
+        data.aws_iam_policy_document.enable_read_access_with_iam_policy_kms_policy.json,
+      ] : []
+    ),
     # admin access
     data.aws_iam_policy_document.allow_access_for_key_administrators_kms_policy.json,
     # user access
@@ -59,6 +62,16 @@ data "aws_iam_policy_document" "kms_policy" {
 data "aws_iam_policy_document" "enable_access_with_iam_policy_kms_policy" {
   source_policy_documents = [templatefile(
     "${path.module}/aws_policies/enable_access_with_iam_policy_kms_policy.json.tftpl",
+    {
+      aws_account_id = local.aws_account_id
+    }
+  )]
+}
+
+
+data "aws_iam_policy_document" "enable_read_access_with_iam_policy_kms_policy" {
+  source_policy_documents = [templatefile(
+    "${path.module}/aws_policies/enable_read_access_with_iam_policy_kms_policy.json.tftpl",
     {
       aws_account_id = local.aws_account_id
     }

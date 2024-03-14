@@ -1,0 +1,18 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions for Read Accecss",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${aws_account_id}:root"
+            },
+            "Action": [
+              "kms:Describe*",
+              "kms:Get*",
+              "kms:List*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

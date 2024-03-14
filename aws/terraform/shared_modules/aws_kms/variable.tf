@@ -45,7 +45,6 @@ variable "admin_aws_iam_principals" {
     condition = alltrue([
       for p in var.admin_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(user|role)", p.arn), null) != null
-      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
     error_message = <<MSG
 The arn of element of admin_aws_iam_principals must be a arn of IAM User or Role.
@@ -74,7 +73,6 @@ variable "user_aws_iam_principals" {
     condition = alltrue([
       for p in var.user_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(root|user|role)", p.arn), null) != null
-      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
     error_message = <<MSG
 The arn of element of user_aws_iam_principals must be a arn of IAM Root, User or Role.
@@ -121,6 +119,17 @@ variable "enable_access_with_iam_policy" {
 IAM PolicyがKMSへのアクセスを許可できるようにするか否か。
 詳細はドキュメントを参照。
 https://docs.aws.amazon.com/ja_jp/kms/latest/developerguide/key-policy-default.html
+DESC
+}
+
+
+variable "enable_read_access_with_iam_policy" {
+  type     = bool
+  default  = true
+  nullable = false
+
+  description = <<DESC
+IAM PolicyがKMSへの読み込みアクセスを許可できるようにするか否か。
 DESC
 }
 
