@@ -7,7 +7,7 @@ locals {
   true の場合、 local.name_prefix は "${var.name_prefix}-${moduleのディレクトリ名}[-${var.name_suffix}]" となる
   false の場合、 local.name_prefix は "${var.name_prefix}[-${var.name_suffix}]" となる
   */
-  append_module_name_to_name_prefix = false
+  append_module_name_to_name_prefix = true
 
   #----------------------
   # 変数
