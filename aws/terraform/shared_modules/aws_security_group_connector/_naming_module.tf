@@ -24,7 +24,7 @@ locals {
           for h in local._module_hierarchical_info : (
             h.append_module_name_to_name ?
             [h.module_name, h.name_suffix] :
-            []
+            [h.name_suffix]
           )
         ],
       ]))
@@ -40,7 +40,7 @@ locals {
           for h in local._module_hierarchical_info : (
             h.append_module_name_to_name ?
             [h.module_name, h.name_suffix] :
-            []
+            [h.name_suffix]
           )
         ],
       ]))
