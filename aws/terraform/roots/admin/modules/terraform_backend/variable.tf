@@ -43,8 +43,12 @@ variable "admin_aws_iam_principals" {
     condition = alltrue([
       for p in var.admin_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(user|role)", p.arn), null) != null
+      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
-    error_message = "The arn of element of admin_aws_iam_principals must be a arn of IAM User or Role."
+    error_message = <<MSG
+The arn of element of admin_aws_iam_principals must be a arn of IAM User or Role.
+(provided value: ${jsonencode(var.admin_aws_iam_principals[*].arn)})
+MSG
   }
 
   validation {
@@ -76,8 +80,12 @@ variable "readwrite_aws_iam_principals" {
     condition = alltrue([
       for p in var.readwrite_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(user|role)", p.arn), null) != null
+      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
-    error_message = "The arn of element of readwrite_aws_iam_principals must be a arn of IAM User or Role."
+    error_message = <<MSG
+The arn of element of readwrite_aws_iam_principals must be a arn of IAM User or Role.
+(provided value: ${jsonencode(var.readwrite_aws_iam_principals[*].arn)})
+MSG
   }
 
   validation {
@@ -109,8 +117,12 @@ variable "read_aws_iam_principals" {
     condition = alltrue([
       for p in var.read_aws_iam_principals :
       try(regex("^arn:aws:iam::[0-9]{12}:(user|role)", p.arn), null) != null
+      || try(regex("^arn:aws:sts::[0-9]{12}:assumed-role/", p.arn), null) != null
     ])
-    error_message = "The arn of element of read_aws_iam_principals must be a arn of IAM User or Role."
+    error_message = <<MSG
+The arn of element of read_aws_iam_principals must be a arn of IAM User or Role.
+(provided value: ${jsonencode(var.read_aws_iam_principals[*].arn)})
+MSG
   }
 
   validation {

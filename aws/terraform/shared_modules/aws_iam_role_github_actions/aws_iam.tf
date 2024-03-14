@@ -19,6 +19,11 @@ resource "aws_iam_role" "default" {
       },
     ]
   })
+
+  tags = {
+    Name   = local.long_name_prefix
+    module = path.module
+  }
 }
 
 

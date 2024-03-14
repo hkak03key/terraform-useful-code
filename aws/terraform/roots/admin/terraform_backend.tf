@@ -9,12 +9,9 @@ module "terraform_backend_admin" {
   name_suffix = "admin"
 
   # add more variables here
-  admin_aws_iam_principals = [
-    local.aws_caller_identity,
-  ]
-  readwrite_aws_iam_principals = [
-    local.aws_caller_identity,
-  ]
+  admin_aws_iam_principals     = local.admin_aws_iam_principals
+  readwrite_aws_iam_principals = local.admin_aws_iam_principals
+
   read_aws_iam_principals = [
   ]
 
