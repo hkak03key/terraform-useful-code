@@ -13,7 +13,7 @@ locals {
   # 変数
   # defaultではmoduleのディレクトリ名が入るが、任意に変更可能
   _module_default_name = basename(abspath(path.module))
-  module_name          = "github_actions"
+  module_name          = "cloudtrail"
 
   name_prefix = replace(
     join(
