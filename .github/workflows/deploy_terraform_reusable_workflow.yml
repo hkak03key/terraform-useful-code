@@ -87,7 +87,6 @@ jobs:
         with:
           path: ${{ inputs.working-dir }}/.terraform
           key: terraform-${{ hashFiles(format('{0}/.terraform.lock.hcl', inputs.working-dir)) }}
-          fail-on-cache-miss: true
 
       - name: Put tf-backend-config
         env:
@@ -145,3 +144,10 @@ jobs:
       - name: Terraform Refresh
         if: inputs.tf-refresh
         run: terraform apply -refresh-only -auto-approve -var-file=${{ env.TF_VAR_FILE_PATH }}
+
+      - name: Save Terraform Cache
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ inputs.working-dir }}/.terraform
+          key: terraform-${{ hashFiles(format('{0}/.terraform.lock.hcl', inputs.working-dir)) }}
