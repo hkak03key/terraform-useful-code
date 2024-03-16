@@ -1,5 +1,6 @@
 data "aws_iam_policy" "aws_managed" {
   for_each = toset([
+    "AdministratorAccess",
     "ReadOnlyAccess",
   ])
 

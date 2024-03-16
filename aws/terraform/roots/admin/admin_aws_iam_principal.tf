@@ -11,5 +11,6 @@ locals {
       arn     = data.aws_iam_user.hkak03key.arn
       user_id = data.aws_iam_user.hkak03key.user_id
     },
+    module.terraform_backend_admin.aws_iam_role_github_actions_deploy.aws_iam_role,
   ]
 }

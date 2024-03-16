@@ -144,3 +144,11 @@ variable "aws_iam_role_github_actions_ci" {
     aws_iam_policies                = list(any)
   })
 }
+
+
+variable "aws_iam_role_github_actions_deploy" {
+  type = object({
+    aws_iam_openid_connect_provider = any
+    aws_iam_policies                = list(any)
+  })
+}
