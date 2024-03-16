@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  deploy_terraform:
+    name: deploy terraform
+    uses: ./.github/workflows/deploy_terraform_reusable_workflow.yml
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    with:
+      working-dir: aws/terraform/roots/admin
+      aws-region: ap-northeast-1
+      tfcmt-target: admin
+      is-masking: true
+      tf-refresh: true
+
+    secrets:
+      aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
+      aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+      aws-iam-role-name: ${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin-gh-act-ci
+      tf-backend-config-content: |-
+        bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin"
+        key            = "terraform.tfstate"
+        dynamodb_table = "admin-terraform-backend-admin"
+      tf-var-file-content: |-
+        aws_iam_policy_infos_dir = "../../aws_iam_policy_infos"
+        account_name             = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        system_name              = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        # env         = null
+        # nam_prefix  = null
