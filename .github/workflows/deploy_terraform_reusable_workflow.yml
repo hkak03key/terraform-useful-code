@@ -9,10 +9,7 @@ on:
       aws-region:
         required: true
         type: string
-      tfcmt-target:
-        required: true
-        type: string
-      tfcmt-is-masking:
+      is-masking:
         required: true
         type: boolean
       terraform-backend-config-file-path:
@@ -27,6 +24,12 @@ on:
         description: |
           The path of the var-file.
           The format is hcl or json.
+      tf-apply-option:
+        required: false
+        type: string
+      tf-refresh:
+        type: boolean
+        default: true
 
     secrets:
       aws-account-name:
@@ -69,16 +72,15 @@ jobs:
         uses: actions/checkout@v4.1.2
       - name: PWD
         run: pwd
+      - name: Display git branch
+        run: git branch --contains
       - name: Masking
-        if: ${{ inputs.tfcmt-is-masking }}
+        if: ${{ inputs.is-masking }}
         run: |-
           # github actions
           echo "::add-mask::${{ secrets.aws-account-id }}"
           echo "::add-mask::${{ secrets.aws-account-name }}"
           echo "::add-mask::${{ secrets.aws-iam-role-name }}"
-          # tfcmt
-          echo "TFCMT_MASKS_SEPARATOR=," >> "$GITHUB_ENV"
-          echo "TFCMT_MASKS=regexp:\\Q${{ secrets.aws-account-id }}\\E,regexp:\\Q${{ secrets.aws-account-name }}\\E,regexp:\\Q${{ secrets.aws-iam-role-name }}\\E" >> "$GITHUB_ENV"
       - name: Put terraform-backend-config
         env:
           tf_backend_config_file_path: ${{ inputs.terraform-backend-config-file-path }}
@@ -127,20 +129,11 @@ jobs:
       - name: Install Terraform
         working-directory: .
         run: ./scripts/install_terraform.sh
-      - name: Install tfcmt
-        working-directory: .
-        run: |
-          sudo curl -fL -o tfcmt.tar.gz https://github.com/suzuki-shunsuke/tfcmt/releases/download/"$TFCMT_VERSION"/tfcmt_linux_amd64.tar.gz
-          sudo tar -C /usr/bin -xzf ./tfcmt.tar.gz
-        env:
-          TFCMT_VERSION: "v4.9.0"
       - name: Terraform Init
         run: |-
           terraform init -backend-config=${{ env.TF_BACKEND_CONFIG_PATH }}
-      - name: Terraform Validate
-        run: terraform validate
-      - name: Terraform Plan
-        run: |-
-          tfcmt -var "target:${{ inputs.tfcmt-target }}" plan -patch -- terraform plan -lock=false -var-file=${{ env.TF_VAR_FILE_PATH }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var-file=${{ env.TF_VAR_FILE_PATH }} ${{ inputs.tf-apply-option }}
+      - name: Terraform Refresh
+        if: inputs.tf-refresh
+        run: terraform apply -refresh-only -auto-approve -var-file=${{ env.TF_VAR_FILE_PATH }}
