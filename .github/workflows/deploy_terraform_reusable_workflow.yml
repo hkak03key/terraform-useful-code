@@ -1,4 +1,4 @@
-name: CI Terraform Reusable Workflow
+name: Deploy Terraform Reusable Workflow
 
 on:
   workflow_call:
