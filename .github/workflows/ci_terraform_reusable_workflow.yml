@@ -79,6 +79,15 @@ jobs:
           # tfcmt
           echo "TFCMT_MASKS_SEPARATOR=," >> "$GITHUB_ENV"
           echo "TFCMT_MASKS=regexp:\\Q${{ secrets.aws-account-id }}\\E,regexp:\\Q${{ secrets.aws-account-name }}\\E,regexp:\\Q${{ secrets.aws-iam-role-name }}\\E" >> "$GITHUB_ENV"
+
+      - name: Restore Terraform Cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ inputs.working-dir }}/.terraform
+          key: terraform-${{ hashFiles(format('{0}/.terraform.lock.hcl', inputs.working-dir)) }}
+          restore-keys: |
+            terraform-
+
       - name: Put tf-backend-config
         env:
           tf_backend_config_file_path: ${{ inputs.tf-backend-config-file-path }}
@@ -144,3 +153,10 @@ jobs:
           tfcmt -var "target:${{ inputs.tfcmt-target }}" plan -patch -- terraform plan -lock=false -var-file=${{ env.TF_VAR_FILE_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save Terraform Cache
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ inputs.working-dir }}/.terraform
+          key: terraform-${{ hashFiles(format('{0}/.terraform.lock.hcl', inputs.working-dir)) }}
