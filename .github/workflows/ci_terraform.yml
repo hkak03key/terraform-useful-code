@@ -36,17 +36,17 @@ jobs:
       working-dir: aws/terraform/roots/admin
       aws-region: ap-northeast-1
       tfcmt-target: admin
-      tfcmt-is-masking: true
+      is-masking: true
 
     secrets:
       aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
       aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws-iam-role-name: ${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin-gh-act-ci
-      terraform-backend-config-content: |-
+      tf-backend-config-content: |-
         bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin"
         key            = "terraform.tfstate"
         dynamodb_table = "admin-terraform-backend-admin"
-      terraform-var-file-content: |-
+      tf-var-file-content: |-
         aws_iam_policy_infos_dir = "../../aws_iam_policy_infos"
         account_name             = "${{ secrets.AWS_ACCOUNT_NAME }}"
         system_name              = "${{ secrets.AWS_ACCOUNT_NAME }}"

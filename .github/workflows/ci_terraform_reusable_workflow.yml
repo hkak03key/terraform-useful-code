@@ -12,16 +12,16 @@ on:
       tfcmt-target:
         required: true
         type: string
-      tfcmt-is-masking:
+      is-masking:
         required: true
         type: boolean
-      terraform-backend-config-file-path:
+      tf-backend-config-file-path:
         required: false
         type: string
         description: |
           The path of the backend configuration file.
           The format is hcl or json.
-      terraform-var-file-path:
+      tf-var-file-path:
         required: false
         type: string
         description: |
@@ -35,12 +35,12 @@ on:
         required: true
       aws-iam-role-name:
         required: true
-      terraform-backend-config-content:
+      tf-backend-config-content:
         required: false
         description: |
           The content of backend configuration.
           The format is hcl or json.
-      terraform-var-file-content:
+      tf-var-file-content:
         required: false
         description: |
           The content of var-file.
@@ -70,7 +70,7 @@ jobs:
       - name: PWD
         run: pwd
       - name: Masking
-        if: ${{ inputs.tfcmt-is-masking }}
+        if: ${{ inputs.is-masking }}
         run: |-
           # github actions
           echo "::add-mask::${{ secrets.aws-account-id }}"
@@ -79,44 +79,44 @@ jobs:
           # tfcmt
           echo "TFCMT_MASKS_SEPARATOR=," >> "$GITHUB_ENV"
           echo "TFCMT_MASKS=regexp:\\Q${{ secrets.aws-account-id }}\\E,regexp:\\Q${{ secrets.aws-account-name }}\\E,regexp:\\Q${{ secrets.aws-iam-role-name }}\\E" >> "$GITHUB_ENV"
-      - name: Put terraform-backend-config
+      - name: Put tf-backend-config
         env:
-          tf_backend_config_file_path: ${{ inputs.terraform-backend-config-file-path }}
-          tf_backend_config_content: ${{ secrets.terraform-backend-config-content }}
+          tf_backend_config_file_path: ${{ inputs.tf-backend-config-file-path }}
+          tf_backend_config_content: ${{ secrets.tf-backend-config-content }}
         run: |-
           if [ -n '${{ env.tf_backend_config_file_path }}' ] && [ -n '${{ env.tf_backend_config_content }}' ]; then
-            echo "Both terraform-backend-config-file-path and terraform-backend-config-content are provided."
-            echo "Either terraform-backend-config-file-path or terraform-backend-config-content must be provided."
+            echo "Both tf-backend-config-file-path and tf-backend-config-content are provided."
+            echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
             exit 1
           elif [ -n '${{ env.tf_backend_config_file_path }}' ]; then
-            echo "inputs.terraform-backend-config-file-path is provided."
+            echo "inputs.tf-backend-config-file-path is provided."
             cp ${{ env.tf_backend_config_file_path }} ${{ env.TF_BACKEND_CONFIG_PATH }}
           elif [ -n '${{ env.tf_backend_config_content }}' ]; then
-            echo "secrets.terraform-backend-config-content is provided."
+            echo "secrets.tf-backend-config-content is provided."
             echo '${{ env.tf_backend_config_content }}' > ${{ env.TF_BACKEND_CONFIG_PATH }}
           else
-            echo "Both terraform-backend-config-file-path and terraform-backend-config-content are not provided."
-            echo "Either terraform-backend-config-file-path or terraform-backend-config-content must be provided."
+            echo "Both tf-backend-config-file-path and tf-backend-config-content are not provided."
+            echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
             exit 1
           fi
-      - name: Put terraform-var-file
+      - name: Put tf-var-file
         env:
-          tf_var_file_path: ${{ inputs.terraform-var-file-path }}
-          tf_var_file_content: ${{ secrets.terraform-var-file-content }}
+          tf_var_file_path: ${{ inputs.tf-var-file-path }}
+          tf_var_file_content: ${{ secrets.tf-var-file-content }}
         run: |-
           if [ -n '${{ env.tf_var_file_path }}' ] && [ -n '${{ env.tf_var_file_content }}' ]; then
-            echo "Both terraform-var-file-path and terraform-var-file-content are provided."
-            echo "Either terraform-var-file-path or terraform-var-file-content must be provided."
+            echo "Both tf-var-file-path and tf-var-file-content are provided."
+            echo "Either tf-var-file-path or tf-var-file-content must be provided."
             exit 1
           elif [ -n '${{ env.tf_var_file_path }}' ]; then
-            echo "inputs.terraform-var-file-path is provided."
+            echo "inputs.tf-var-file-path is provided."
             cp ${{ env.tf_var_file_path }} ${{ env.TF_VAR_FILE_PATH }}
           elif [ -n '${{ env.tf_var_file_content }}' ]; then
-            echo "secrets.terraform-var-file-content is provided."
+            echo "secrets.tf-var-file-content is provided."
             echo '${{ env.tf_var_file_content }}' > ${{ env.TF_VAR_FILE_PATH }}
           else
-            echo "Both terraform-var-file-path and terraform-var-file-content are not provided."
-            echo "Either terraform-var-file-path or terraform-var-file-content must be provided."
+            echo "Both tf-var-file-path and tf-var-file-content are not provided."
+            echo "Either tf-var-file-path or tf-var-file-content must be provided."
             exit 1
           fi
       - name: Configure AWS credentials from IAM Role
