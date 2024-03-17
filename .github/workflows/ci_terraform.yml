@@ -41,7 +41,10 @@ jobs:
     secrets:
       aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
       aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-iam-role-name: ${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin-gh-act-ci
+      aws-iam-role-name: ${{ secrets.AWS_IAM_ROLE_NAME }}
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
       tf-backend-config-content: |-
         bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin"
         key            = "terraform.tfstate"
