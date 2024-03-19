@@ -1,6 +1,11 @@
 #!/bin/bash -eu
 
-TF_VERSION=1.7.4
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 <terraform_version>"
+  exit 1
+fi
+
+TF_VERSION=$1
 PLATFORM=linux_amd64
 
 TF_URL="https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_${PLATFORM}.zip"
