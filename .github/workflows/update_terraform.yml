@@ -2,7 +2,7 @@ name: Update Terraform
 
 on:
   schedule:
-    - cron: "0 11 * * 1-5"
+    - cron: "0 2 * * 1"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
