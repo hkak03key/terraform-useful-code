@@ -105,5 +105,5 @@ jobs:
                  "title": "Update terraform v${{ needs.get_terraform_latest_version.outputs.version }}",
                  "body": "This Pull Request craeted by GitHub Actions.",
                  "head": "${{ needs.update_terraform.outputs.branch_name }}",
-                 "base": "main"
+                 "base": "${{ github.ref_name }}"
                }'
