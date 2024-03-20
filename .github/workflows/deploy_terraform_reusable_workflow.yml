@@ -52,6 +52,7 @@ on:
 env:
   TF_BACKEND_CONFIG_PATH: /tmp/terraform_backend_config.file
   TF_VAR_FILE_PATH: /tmp/tfvar.file
+  TF_VERSION: 1.7.4
 
 jobs:
   ci-terraform:
@@ -135,7 +136,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
       - name: Install Terraform
         working-directory: .
-        run: ./scripts/install_terraform.sh
+        run: ./scripts/install_terraform.sh ${{ env.TF_VERSION }}
       - name: Terraform Init
         run: |-
           terraform init -backend-config=${{ env.TF_BACKEND_CONFIG_PATH }}
