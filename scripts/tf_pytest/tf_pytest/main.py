@@ -33,9 +33,14 @@ def init_destroy():
 
 def _init_destroy():
     cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
+    cmd_init = ["terraform", "init"]
+
+    if os.environ.get("TF_BACKEND_CONFIG_FILE_PATH"):
+        backend_config_file_path = os.environ.get("TF_BACKEND_CONFIG_FILE_PATH")
+        cmd_init.append(f"-backend-config={backend_config_file_path}")
 
     _logger.info("terraform init")
-    _exec_cmd(["terraform", "init"], cwd=cwd, print_stdout=True, print_stderr=True)
+    _exec_cmd(cmd_init, cwd=cwd, print_stdout=True, print_stderr=True)
 
     root = _apply()
 
@@ -45,9 +50,15 @@ def _init_destroy():
         _logger.info("terraform destroy skip")
         return
 
+    cmd_destroy = ["terraform", "apply", "-auto-approve", "-destroy"]
+
+    if os.environ.get("TF_VAR_FILE_PATH"):
+        var_file_path = os.environ.get("TF_VAR_FILE_PATH")
+        cmd_destroy.append(f"-var-file={var_file_path}")
+
     _logger.info("terraform destroy")
     _exec_cmd(
-        ["terraform", "apply", "-lock=false", "-destroy", "-auto-approve"],
+        cmd_destroy,
         cwd=cwd,
         print_stdout=True,
         print_stderr=True,
@@ -61,9 +72,14 @@ def apply(init_destroy):
 
 def _apply():
     cwd = os.environ.get("TF_PYTEST_DIR", "../terraform")
+    cmd_apply = ["terraform", "apply", "-auto-approve"]
+
+    if os.environ.get("TF_VAR_FILE_PATH"):
+        var_file_path = os.environ.get("TF_VAR_FILE_PATH")
+        cmd_apply.append(f"-var-file={var_file_path}")
 
     _logger.info("terraform apply")
-    _exec_cmd(["terraform", "apply", "-lock=false", "-auto-approve"], cwd=cwd, print_stdout=True, print_stderr=True)
+    _exec_cmd(cmd_apply, cwd=cwd, print_stdout=True, print_stderr=True)
 
     root = tfstate_module.NodeRoot()
     return root
