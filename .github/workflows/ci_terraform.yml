@@ -13,8 +13,10 @@ env:
 
 jobs:
   _is_running_on_act:
-    name: is running on act
+    name: _is running on act
+
     runs-on: ubuntu-latest
+    timeout-minutes: 1
 
     steps:
       - name: default
@@ -32,7 +34,9 @@ jobs:
 
   check_terraform_format:
     name: check terraform format
+
     runs-on: ubuntu-latest
+    timeout-minutes: 3
 
     steps:
       - name: Checkout
@@ -46,16 +50,20 @@ jobs:
 
   ci_terraform_admin:
     name: ci terraform admin
+
+    uses: ./.github/workflows/ci_terraform_reusable_workflow.yml
+
     needs:
       - _is_running_on_act
       - check_terraform_format
-    uses: ./.github/workflows/ci_terraform_reusable_workflow.yml
+
     permissions:
       id-token: write
       contents: read
       pull-requests: write
 
     with:
+      timeout-minutes: 60
       working-dir: aws/terraform/roots/admin
       aws-region: ap-northeast-1
       tfcmt-target: admin
