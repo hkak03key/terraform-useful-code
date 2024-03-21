@@ -8,6 +8,8 @@ on:
       - aws/terraform/**
       - .github/workflows/ci_tf_module.yml
 
+concurrency:
+  group: ci_tf_module
 
 jobs:
   _is_running_on_act:
