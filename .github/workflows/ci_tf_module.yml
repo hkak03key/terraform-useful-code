@@ -1,0 +1,129 @@
+name: CI Terraform
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - aws/terraform/**
+      - .github/workflows/ci_tf_module.yml
+
+
+jobs:
+  _is_running_on_act:
+    name: _is running on act
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    steps:
+      - name: default
+        id: default
+        run: |-
+          if [ "${{ env.ACT }}" == "true" ]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+    outputs:
+      value: ${{ steps.default.outputs.value }}
+
+
+  _get_github_workspace:
+    name: _get github workspace
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    steps:
+      - name: default
+        id: default
+        run: |-
+          echo "value=${{ github.workspace }}" >> "$GITHUB_OUTPUT"
+
+    outputs:
+      value: ${{ steps.default.outputs.value }}
+
+
+  get_modules:
+    name: get modules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.2
+      - name: Display Current Branch
+        run: git branch --show-current
+      - name: Get modules
+        id: get_modules
+        run: |-
+          find . -type d -path "**/*modules/*/test/pytest" \
+          | sed 's|^\./||g' \
+          | sed 's|/test/pytest$||g' \
+          | sort -u \
+          | jq -R -s 'split("\n")' | jq .[:-1] > modules.txt
+          cat modules.txt
+          delimiter="$(openssl rand -hex 8)"
+          echo "value<<${delimiter}" >> "${GITHUB_OUTPUT}"
+          echo "$(cat modules.txt)" >> "${GITHUB_OUTPUT}"
+          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+      - name: Get diff modules
+        id: get_diff_modules
+        run: |-
+          echo '${{ steps.get_modules.outputs.value }}' \
+          | jq -r '.[]' \
+          | xargs -I {} sh -c 'if [ -n "$(git diff --name-only origin/main {})" ]; then echo {}; fi' \
+          | jq -R -s 'split("\n")' | jq .[:-1] > diff_modules.txt
+          cat diff_modules.txt
+          delimiter="$(openssl rand -hex 8)"
+          echo "value<<${delimiter}" >> "${GITHUB_OUTPUT}"
+          echo "$(cat diff_modules.txt)" >> "${GITHUB_OUTPUT}"
+          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+
+    outputs:
+      modules: ${{ steps.get_modules.outputs.value }}
+      diff_modules: ${{ steps.get_diff_modules.outputs.value }}
+
+
+  test_terraform_module:
+    name: test terraform module
+
+    uses: ./.github/workflows/ci_tf_module_reusable_workflow.yml
+
+    needs:
+      - _is_running_on_act
+      - _get_github_workspace
+      - get_modules
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{fromJson(needs.get_modules.outputs.diff_modules)}}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    with:
+      module-dir: ${{ matrix.module }}
+      aws-region: ap-northeast-1
+      is-masking: true
+
+    secrets:
+      aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
+      aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+      aws-iam-role-arn: ${{ (needs._is_running_on_act.outputs.value != 'true' && format('arn:aws:iam::{0}:role/{1}-admin-terraform-backend-FIXME', secrets.AWS_ACCOUNT_ID, secrets.AWS_ACCOUNT_NAME)) || secrets.AWS_IAM_ROLE_NAME }}
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+      tf-backend-config-content: |-
+        bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-ci-tf-module"
+        key            = "${{ matrix.module }}.tfstate"
+        dynamodb_table = "admin-terraform-backend-ci-tf-module"
+      tf-var-file-content: |-
+        aws_iam_policy_infos_dir = "${{ needs._get_github_workspace.outputs.value }}/aws/terraform/aws_iam_policy_infos"
+        account_name = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        system_name  = "${{ secrets.AWS_ACCOUNT_NAME }}"
+        env          = "ci-tf-module"
+        # name_prefix  = null
