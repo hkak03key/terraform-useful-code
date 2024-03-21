@@ -18,7 +18,7 @@ module "defaults" {
   name_suffix = each.key == "default" ? "" : each.key
 
   admin_aws_iam_principals = [
-    data.aws_caller_identity.default,
+    local.aws_caller_identity,
     aws_iam_role.defaults["admin_iam_policy_kms_policy"],
     aws_iam_role.defaults["admin_no_iam_policy_kms_policy"],
   ]
