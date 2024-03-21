@@ -1,4 +1,4 @@
-name: CI Terraform
+name: CI Terraform Module
 
 on:
   pull_request:
