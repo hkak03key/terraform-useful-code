@@ -138,17 +138,13 @@ MSG
 }
 
 
-variable "aws_iam_role_github_actions_ci" {
-  type = object({
-    aws_iam_openid_connect_provider = any
-    aws_iam_policies                = list(any)
-  })
-}
-
-
-variable "aws_iam_role_github_actions_deploy" {
-  type = object({
-    aws_iam_openid_connect_provider = any
-    aws_iam_policies                = list(any)
-  })
+variable "aws_iam_role_github_actions_config" {
+  type = map(
+    object({
+      name_suffix                     = optional(string, null)
+      aws_iam_openid_connect_provider = any
+      aws_iam_policies                = list(any)
+      is_output                       = bool
+    })
+  )
 }
