@@ -12,6 +12,24 @@ env:
   TF_VERSION: 1.7.4
 
 jobs:
+  _is_running_on_act:
+    name: is running on act
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: default
+        id: default
+        run: |-
+          if [ "${{ env.ACT }}" == "true" ]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+    outputs:
+      value: ${{ steps.default.outputs.value }}
+
+
   check_terraform_format:
     name: check terraform format
     runs-on: ubuntu-latest
@@ -25,9 +43,12 @@ jobs:
       - name: Terraform Fmt
         run: terraform fmt -check -recursive
 
+
   ci_terraform_admin:
     name: ci terraform admin
-    needs: check_terraform_format
+    needs:
+      - _is_running_on_act
+      - check_terraform_format
     uses: ./.github/workflows/ci_terraform_reusable_workflow.yml
     permissions:
       id-token: write
@@ -43,7 +64,7 @@ jobs:
     secrets:
       aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
       aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-iam-role-name: ${{ secrets.AWS_IAM_ROLE_NAME }}
+      aws-iam-role-arn: ${{ (needs._is_running_on_act.outputs.value != 'true' && format('arn:aws:iam::{0}:role/{1}-admin-terraform-backend-admin-gh-act-ci', secrets.AWS_ACCOUNT_ID, secrets.AWS_ACCOUNT_NAME)) || secrets.AWS_IAM_ROLE_NAME }}
       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}

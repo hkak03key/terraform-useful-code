@@ -33,7 +33,7 @@ on:
         required: true
       aws-account-id:
         required: true
-      aws-iam-role-name:
+      aws-iam-role-arn:
         required: false
       aws-access-key-id:
         required: false
@@ -137,38 +137,10 @@ jobs:
             exit 1
           fi
 
-      - name: Check Inputs or Secrets for AWS Credentials
-        run: |-
-          if [ -n "${{ secrets.aws-iam-role-name }}" ] && [ -n "${{ secrets.aws-access-key-id }}" ]; then
-            echo "Both aws-iam-role-name and aws-access-key-id are provided."
-            echo "Either aws-iam-role-name or aws-access-key-id must be provided."
-            exit 1
-          elif [ -n "${{ secrets.aws-iam-role-name }}" ]; then
-            echo "aws-iam-role-name is provided."
-          elif [ -n "${{ secrets.aws-access-key-id }}" ]; then
-            echo "aws-access-key-id is provided."
-          else
-            echo "Neither aws-iam-role-name nor aws-access-key-id is provided."
-            echo "Either aws-iam-role-name or aws-access-key-id must be provided."
-            exit 1
-          fi
-      - name: Configure AWS credentials from IAM Role
-        env:
-          aws_iam_role_name: ${{ secrets.aws-iam-role-name }}
-        if: ${{ env.aws_iam_role_name && env.aws_iam_role_name != '' }}
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.aws-account-id }}:role/${{ secrets.aws-iam-role-name }}
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
-          aws-session-token: ${{ secrets.aws-session-token }}
-          aws-region: ${{ inputs.aws-region }}
-      - name: Configure AWS credentials from Access Key
-        env:
-          aws_access_key_id: ${{ secrets.aws-access-key-id }}
-        if: ${{ env.aws_access_key_id && env.aws_access_key_id != '' }}
-        uses: aws-actions/configure-aws-credentials@v4.0.2
-        with:
+          role-to-assume: ${{ secrets.aws-iam-role-arn }}
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-session-token: ${{ secrets.aws-session-token }}
