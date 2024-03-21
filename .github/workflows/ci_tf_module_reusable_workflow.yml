@@ -146,7 +146,7 @@ jobs:
       - name: Pip install
         working-directory: .
         run: |-
-          pip install pytest
+          pip install pytest poetry
           pip install -e ${{ github.workspace }}/scripts/tf_pytest
 
       - name: Execute test
