@@ -3,6 +3,9 @@ name: CI Terraform Reusable Workflow
 on:
   workflow_call:
     inputs:
+      timeout-minutes:
+        required: true
+        type: number
       working-dir:
         required: true
         type: string
@@ -61,7 +64,9 @@ env:
 jobs:
   ci-terraform:
     name: CI Terraform
+
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
 
     permissions:
       id-token: write
