@@ -98,6 +98,8 @@ jobs:
       - _get_github_workspace
       - get_modules
 
+    if: ${{ needs.get_modules.outputs.diff_modules != '[]' }}
+
     strategy:
       fail-fast: false
       matrix:
