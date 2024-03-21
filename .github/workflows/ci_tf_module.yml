@@ -73,9 +73,10 @@ jobs:
       - name: Get diff modules
         id: get_diff_modules
         run: |-
+          git fetch origin ${{ github.base_ref }}
           echo '${{ steps.get_modules.outputs.value }}' \
           | jq -r '.[]' \
-          | xargs -I {} sh -c 'if [ -n "$(git diff --name-only origin/main {})" ]; then echo {}; fi' \
+          | xargs -I {} sh -c 'if [ -n "$(git diff --name-only origin/${{ github.base_ref }} {})" ]; then echo {}; fi' \
           | jq -R -s 'split("\n")' | jq .[:-1] > diff_modules.txt
           cat diff_modules.txt
           delimiter="$(openssl rand -hex 8)"
