@@ -22,7 +22,7 @@ module "terraform_backend_admin" {
       aws_iam_policies = [
         data.aws_iam_policy.aws_managed["ReadOnlyAccess"],
       ]
-      is_output = false
+      is_output = true
     }
     deploy = {
       name_suffix                     = "deploy"
@@ -53,8 +53,9 @@ module "terraform_backend_ci_tf_module" {
     module.terraform_backend_ci_tf_module.aws_iam_role_github_actions["default"].aws_iam_role,
   ])
 
-  read_aws_iam_principals = [
-  ]
+  read_aws_iam_principals = flatten([
+    module.terraform_backend_admin.aws_iam_role_github_actions["ci"].aws_iam_role,
+  ])
 
   aws_iam_role_github_actions_config = {
     default = {
