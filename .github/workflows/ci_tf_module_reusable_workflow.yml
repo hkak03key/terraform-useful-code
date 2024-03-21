@@ -30,7 +30,7 @@ on:
         required: true
       aws-account-id:
         required: true
-      aws-iam-role-name:
+      aws-iam-role-arn:
         required: false
       aws-access-key-id:
         required: false
