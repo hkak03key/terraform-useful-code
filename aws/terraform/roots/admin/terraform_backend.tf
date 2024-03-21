@@ -15,17 +15,33 @@ module "terraform_backend_admin" {
   read_aws_iam_principals = [
   ]
 
-  aws_iam_role_github_actions_ci = {
-    aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
-    aws_iam_policies = [
-      data.aws_iam_policy.aws_managed["ReadOnlyAccess"],
-    ]
+  aws_iam_role_github_actions_config = {
+    ci = {
+      name_suffix                     = "ci"
+      aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
+      aws_iam_policies = [
+        data.aws_iam_policy.aws_managed["ReadOnlyAccess"],
+      ]
+      is_output = false
+    }
+    deploy = {
+      name_suffix                     = "deploy"
+      aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
+      aws_iam_policies = [
+        data.aws_iam_policy.aws_managed["AdministratorAccess"],
+      ]
+      is_output = true
+    }
   }
+}
 
-  aws_iam_role_github_actions_deploy = {
-    aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
-    aws_iam_policies = [
-      data.aws_iam_policy.aws_managed["AdministratorAccess"],
-    ]
-  }
+
+moved {
+  from = module.terraform_backend_admin.module.aws_iam_role_github_actions_ci
+  to   = module.terraform_backend_admin.module.aws_iam_role_github_actions["ci"]
+}
+
+moved {
+  from = module.terraform_backend_admin.module.aws_iam_role_github_actions_deploy
+  to   = module.terraform_backend_admin.module.aws_iam_role_github_actions["deploy"]
 }
