@@ -1,24 +1,24 @@
 module "defaults" {
   for_each = {
-    no_bp_no_sse_kms = {
+    wo_bp_wo_kms = {
       server_side_encryption = {
         sse_algorithm = "AES256"
       }
       use_bucket_policy_for_access_control = false
     }
-    no_bp_sse_inner_kms = {
+    wo_bp_w_in_kms = {
       server_side_encryption = {
         sse_algorithm = "aws:kms"
       }
       use_bucket_policy_for_access_control = false
     }
-    bp_no_sse_kms = {
+    w_bp_wo_kms = {
       server_side_encryption = {
         sse_algorithm = "AES256"
       }
       use_bucket_policy_for_access_control = true
     }
-    bp_sse_inner_kms = {
+    w_bp_w_in_kms = {
       server_side_encryption = {
         sse_algorithm = "aws:kms"
       }

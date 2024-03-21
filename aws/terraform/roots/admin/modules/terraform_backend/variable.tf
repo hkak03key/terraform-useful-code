@@ -147,4 +147,5 @@ variable "aws_iam_role_github_actions_config" {
       is_output                       = bool
     })
   )
+  default = {}
 }

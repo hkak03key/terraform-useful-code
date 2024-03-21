@@ -1,0 +1,153 @@
+name: CI Terraform Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      module-dir:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      is-masking:
+        required: true
+        type: boolean
+      tf-backend-config-file-path:
+        required: false
+        type: string
+        description: |-
+          The path of the backend configuration file.
+          The format is hcl or json.
+      tf-var-file-path:
+        required: false
+        type: string
+        description: |-
+          The path of the var-file.
+          The format is hcl or json.
+
+    secrets:
+      aws-account-name:
+        required: true
+      aws-account-id:
+        required: true
+      aws-iam-role-arn:
+        required: false
+      aws-access-key-id:
+        required: false
+      aws-secret-access-key:
+        required: false
+      aws-session-token:
+        required: false
+
+      tf-backend-config-content:
+        required: false
+        description: |
+          The content of backend configuration.
+          The format is hcl or json.
+      tf-var-file-content:
+        required: false
+        description: |
+          The content of var-file.
+          The format is hcl or json.
+
+env:
+  TF_BACKEND_CONFIG_FILE_PATH: /tmp/terraform_backend_config.file
+  TF_VAR_FILE_PATH: /tmp/tfvar.file
+  TF_VERSION: 1.7.4
+
+jobs:
+  ci-terraform:
+    name: CI Terraform
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.module-dir }}/test/pytest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.2
+      - name: PWD
+        run: pwd
+
+      - name: Masking
+        if: ${{ inputs.is-masking }}
+        run: |-
+          # github actions
+          echo "::add-mask::${{ secrets.aws-account-id }}"
+          echo "::add-mask::${{ secrets.aws-account-name }}"
+
+      - name: Put tf-backend-config
+        env:
+          _tf_backend_config_file_path: ${{ inputs.tf-backend-config-file-path }}
+          _tf_backend_config_content: ${{ secrets.tf-backend-config-content }}
+        run: |-
+          if [ -n '${{ env._tf_backend_config_file_path }}' ] && [ -n '${{ env._tf_backend_config_content }}' ]; then
+            echo "Both tf-backend-config-file-path and tf-backend-config-content are provided."
+            echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
+            exit 1
+          elif [ -n '${{ env._tf_backend_config_file_path }}' ]; then
+            echo "inputs.tf-backend-config-file-path is provided."
+            cp ${{ env._tf_backend_config_file_path }} ${{ env.TF_BACKEND_CONFIG_FILE_PATH }}
+          elif [ -n '${{ env._tf_backend_config_content }}' ]; then
+            echo "secrets.tf-backend-config-content is provided."
+            echo '${{ env._tf_backend_config_content }}' > ${{ env.TF_BACKEND_CONFIG_FILE_PATH }}
+          else
+            echo "Both tf-backend-config-file-path and tf-backend-config-content are not provided."
+            echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
+            exit 1
+          fi
+      - name: Put tf-var-file
+        env:
+          _tf_var_file_path: ${{ inputs.tf-var-file-path }}
+          _tf_var_file_content: ${{ secrets.tf-var-file-content }}
+        run: |-
+          if [ -n '${{ env._tf_var_file_path }}' ] && [ -n '${{ env._tf_var_file_content }}' ]; then
+            echo "Both tf-var-file-path and tf-var-file-content are provided."
+            echo "Either tf-var-file-path or tf-var-file-content must be provided."
+            exit 1
+          elif [ -n '${{ env._tf_var_file_path }}' ]; then
+            echo "inputs.tf-var-file-path is provided."
+            cp ${{ env._tf_var_file_path }} ${{ env.TF_VAR_FILE_PATH }}
+          elif [ -n '${{ env._tf_var_file_content }}' ]; then
+            echo "secrets.tf-var-file-content is provided."
+            echo '${{ env._tf_var_file_content }}' > ${{ env.TF_VAR_FILE_PATH }}
+          else
+            echo "Both tf-var-file-path and tf-var-file-content are not provided."
+            echo "Either tf-var-file-path or tf-var-file-content must be provided."
+            exit 1
+          fi
+      - name: Put s3 backend
+        run: |-
+          cd ../terraform
+          cat <<EOF > backend.tf
+          terraform {
+            backend "s3" {
+            }
+          }
+          EOF
+
+      - name: Configure AWS credentials from IAM Role
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          role-to-assume: ${{ secrets.aws-iam-role-arn }}
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-session-token: ${{ secrets.aws-session-token }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Install Terraform
+        working-directory: .
+        run: ./scripts/install_terraform.sh ${{ env.TF_VERSION }}
+      - name: Pip install
+        working-directory: .
+        run: |-
+          pip install pytest poetry
+          pip install -e ${{ github.workspace }}/scripts/tf_pytest
+
+      - name: Execute test
+        run: pytest -s

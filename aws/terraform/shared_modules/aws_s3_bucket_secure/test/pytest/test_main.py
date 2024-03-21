@@ -41,47 +41,47 @@ _params_key_test_s3_write_object = [
         for d in [
             {
                 "iam_role": "read",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "read",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "read",
-                "s3_bucket": "bp_sse_inner_kms",
+                "s3_bucket": "w_bp_w_in_kms",
                 "expect": False,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": False,
             },
         ]
@@ -141,47 +141,47 @@ _params_key_test_s3_read_object = [
         for d in [
             {
                 "iam_role": "read",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "no_bp_no_sse_kms",
+                "s3_bucket": "wo_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "read",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": False,
             },
             {
                 "iam_role": "read",
-                "s3_bucket": "bp_sse_inner_kms",
+                "s3_bucket": "w_bp_w_in_kms",
                 "expect": True,
             },
             {
                 "iam_role": "readwrite",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": True,
             },
             {
                 "iam_role": "not_attached",
-                "s3_bucket": "bp_no_sse_kms",
+                "s3_bucket": "w_bp_wo_kms",
                 "expect": False,
             },
         ]
