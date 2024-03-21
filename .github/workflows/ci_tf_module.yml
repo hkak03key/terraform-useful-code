@@ -101,8 +101,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # module: ${{fromJson(needs.get_modules.outputs.diff_modules)}}
-        module: ${{fromJson(needs.get_modules.outputs.modules)}}
+        module: ${{fromJson(needs.get_modules.outputs.diff_modules)}}
 
     permissions:
       id-token: write
