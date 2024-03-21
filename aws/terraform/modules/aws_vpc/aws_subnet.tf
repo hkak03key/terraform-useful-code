@@ -2,7 +2,7 @@ module "aws_subnets" {
   source = "../../shared_modules/aws_subnets"
 
   _system_info              = local._system_info
-  _module_hierarchical_info = var._module_hierarchical_info
+  _module_hierarchical_info = local._module_hierarchical_info
 
   aws_vpc = aws_vpc.default
 
