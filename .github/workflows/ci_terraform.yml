@@ -13,7 +13,7 @@ env:
 
 jobs:
   _is_running_on_act:
-    name: is running on act
+    name: _is running on act
 
     runs-on: ubuntu-latest
     timeout-minutes: 1
