@@ -1,7 +1,14 @@
+locals {
+  # prevent cyclic dependency
+  aws_cloudwatch_log_group_name = local.name_prefix
+}
+
 resource "aws_cloudwatch_log_group" "default" {
-  name = local.name_prefix
+  name = local.aws_cloudwatch_log_group_name
 
   retention_in_days = 30 # FIXME
+
+  kms_key_id = module.aws_kms.aws_kms_key.arn
 }
 
 
