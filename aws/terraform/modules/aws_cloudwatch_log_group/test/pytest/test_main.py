@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from datetime import datetime
 
 import boto3
 from tf_pytest.aws import AwsIAMPolicyTester
@@ -31,7 +32,7 @@ class AwsIAMPolicyTesterCloudwatchLogs(AwsIAMPolicyTester):
                 logStreamName=logs_stream_name,
                 logEvents=[
                     {
-                        "timestamp": 0,
+                        "timestamp": int(datetime.now().timestamp() * 1000),
                         "message": "test",
                     },
                 ],
