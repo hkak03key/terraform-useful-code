@@ -1,3 +1,4 @@
+/* Resource */
 resource "aws_kinesis_firehose_delivery_stream" "default" {
   name = replace(
     join("-", compact([local.name_prefix])),
@@ -44,3 +45,6 @@ resource "aws_iam_role_policy_attachment" "firehose" {
   role       = aws_iam_role.firehose.id
   policy_arn = each.value
 }
+
+
+/* IAM Policy */
