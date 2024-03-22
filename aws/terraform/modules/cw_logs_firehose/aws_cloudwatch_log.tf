@@ -35,7 +35,5 @@ resource "aws_iam_policy" "logs_log" {
   path        = "/"
   description = ""
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
   policy = jsonencode(local._aws_iam_policy_aws_cloudwatch_log_group_logs_log["policy"])
 }
