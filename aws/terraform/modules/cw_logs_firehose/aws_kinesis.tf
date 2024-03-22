@@ -11,6 +11,7 @@ resource "aws_kinesis_firehose_delivery_stream" "default" {
     bucket_arn = module.aws_s3_bucket_core.aws_s3_bucket.arn
 
     buffering_interval = 10 # for experimentation
+    compression_format = "GZIP" # s3上のファイルをDL -> `gzcat <file>` で確認できる
   }
 
   depends_on = [
