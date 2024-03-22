@@ -48,3 +48,27 @@ resource "aws_iam_role_policy_attachment" "firehose" {
 
 
 /* IAM Policy */
+locals {
+  _aws_iam_policy_firehose_write = jsondecode(
+    templatefile(
+      "${local._system_info["aws_iam_policy_infos_dir"]}/firehose_write.json.tftpl",
+      {
+        # iam policyに関する情報
+        iam_policy_aws_account_id = local.aws_account_id
+        # アクセスしたいリソースに関する情報
+        resource_aws_account_id = local.aws_account_id
+        resource_region         = local.region
+        resource_name           = aws_kinesis_firehose_delivery_stream.default.name
+      }
+    )
+  )
+}
+
+
+resource "aws_iam_policy" "firehose_write" {
+  name        = local._aws_iam_policy_firehose_write["name"]
+  path        = "/"
+  description = ""
+
+  policy = jsonencode(local._aws_iam_policy_firehose_write["policy"])
+}
