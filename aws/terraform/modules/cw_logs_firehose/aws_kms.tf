@@ -5,10 +5,13 @@ module "aws_kms" {
   _module_hierarchical_info = local._module_hierarchical_info
 
   admin_aws_iam_principals = local.admin_aws_iam_principals
-  user_aws_iam_principals = flatten([
+  user_aws_iam_principals = distinct(flatten([
+    # default
     local.readwrite_aws_iam_principals,
     local.read_aws_iam_principals,
-  ])
+    # additional
+    aws_iam_role.cw_logs_subscription,
+  ]))
 
   enable_access_with_iam_policy  = false
   enable_access_as_user_by_admin = true
