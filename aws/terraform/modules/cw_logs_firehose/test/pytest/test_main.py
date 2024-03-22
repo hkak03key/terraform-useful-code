@@ -69,7 +69,7 @@ class AwsTesterStream(AwsTester):
         return False
 
 
-def test_put_log_events(tfstate_skip_apply, request):
+def test_put_log_events(tfstate_skip_apply, delete_all_object, request):
     root = tfstate_skip_apply
 
     aws_cloudwatch_log_group = root.module.default.aws_cloudwatch_log_group.default
