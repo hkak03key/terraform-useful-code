@@ -10,7 +10,7 @@ resource "aws_kinesis_firehose_delivery_stream" "default" {
     role_arn   = aws_iam_role.firehose.arn
     bucket_arn = module.aws_s3_bucket_core.aws_s3_bucket.arn
 
-    buffering_interval = 10 # for experimentation
+    buffering_interval = 10     # for experimentation
     compression_format = "GZIP" # s3上のファイルをDL -> `gzcat <file>` で確認できる
   }
 
