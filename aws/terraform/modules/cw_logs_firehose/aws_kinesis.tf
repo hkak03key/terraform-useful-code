@@ -12,6 +12,10 @@ resource "aws_kinesis_firehose_delivery_stream" "default" {
 
     buffering_interval = 10 # for experimentation
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.firehose,
+  ]
 }
 
 
