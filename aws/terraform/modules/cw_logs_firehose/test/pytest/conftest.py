@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+import boto3
 from tf_pytest import *
 
 import pytest
@@ -18,6 +19,10 @@ def _config_root_logger():
 
 
 _config_root_logger()
+
+# logger
+_logger = logging.getLogger(__name__)
+_logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 @pytest.fixture(scope="session")
