@@ -62,12 +62,16 @@ class NodeResourceTypeResource(NodeResourceType):
     def __getattr__(self, name):
         target_addr = (self.address + "." + name).removeprefix(".")
         _logger.debug("target_addr: {}".format(target_addr))
+        _logger.debug(self._state["resources"])
 
         resources = [resource for resource in self._state["resources"] if resource["name"] == name]
-        if len(resources) == 1:
+        if len(resources) == 0:
+            raise AttributeError("{} is not found".format(target_addr))
+
+        if not "index" in resources[0].keys():
             return NodeInstanceResource(target_addr, resources[0], self.resource_type)
 
-        if len(resources) >= 2:
+        else:
             node_list = NodeListInstanceResource(
                 [
                     NodeInstanceResource(
@@ -96,10 +100,14 @@ class NodeResourceTypeData(NodeResourceTypeResource):
         _logger.debug("target_addr: {}".format(target_addr))
 
         resources = [resource for resource in self._state["resources"] if resource["name"] == name]
-        if len(resources) == 1:
+
+        if len(resources) == 0:
+            raise AttributeError("{} is not found".format(target_addr))
+
+        if not "index" in resources[0].keys():
             return NodeInstanceData(target_addr, resources[0], self.resource_type)
 
-        if len(resources) >= 2:
+        else:
             node_list = NodeListInstanceData(
                 [
                     NodeInstanceData(
@@ -169,10 +177,20 @@ class NodeCategoryModule(NodeCategory):
             if child_module["address"].startswith(target_addr)
         ]
 
-        if len(modules) == 1:
+        # check for_each/count or not
+        is_single = True
+        for module in modules:
+            if re.match(r"^\[(.+)\]$", module["address"].removeprefix(target_addr)):
+                is_single = False
+                break
+
+        if len(modules) == 0:
+            raise AttributeError("{} is not found".format(target_addr))
+
+        if is_single:
             return NodeInstanceModule(target_addr, modules[0], self.category)
 
-        if len(modules) >= 2:
+        else:
             node_list = NodeListInstanceModule([NodeInstanceModule(m["address"], m, self.category) for m in modules])
             return node_list
 
