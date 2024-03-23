@@ -20,10 +20,12 @@ locals {
     templatefile(
       "${local._system_info["aws_iam_policy_infos_dir"]}/logs_log.json.tftpl",
       {
-        aws_account_id                          = local.aws_account_id # iam policyが作成されるawsアカウントID
-        aws_cloudwatch_log_group_aws_account_id = local.aws_account_id # アクセスしたいcloudwatch log groupが存在するawsアカウントID
-        aws_cloudwatch_log_group_region         = local.region
-        aws_cloudwatch_log_group_name           = aws_cloudwatch_log_group.default.name
+        # iam policyに関する情報
+        iam_policy_aws_account_id = local.aws_account_id
+        # アクセスしたいリソースに関する情報
+        resource_aws_account_id = local.aws_account_id
+        resource_region         = local.region
+        resource_name           = aws_cloudwatch_log_group.default.name
       }
     )
   )
