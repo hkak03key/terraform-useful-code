@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
-class AwsTesterStream(AwsTester):
+class AwsTesterArriveS3(AwsTester):
     def __init__(self):
         super().__init__()
 
@@ -72,14 +72,14 @@ class AwsTesterStream(AwsTester):
         return False
 
 
-def test_put_log_events(tfstate_skip_apply, delete_all_object, request):
+def test_arrive_to_s3(tfstate_skip_apply, delete_all_object, request):
     root = tfstate_skip_apply
 
     aws_cloudwatch_log_group = root.module.default.aws_cloudwatch_log_group.default
     aws_s3_bucket = root.module.default.module.aws_s3_bucket_core.aws_s3_bucket.default
     aws_kinesis_firehose_delivery_stream = root.module.default.aws_kinesis_firehose_delivery_stream.default
 
-    with AwsTesterStream() as tester:
+    with AwsTesterArriveS3() as tester:
         assert (
             tester.test(
                 **{
