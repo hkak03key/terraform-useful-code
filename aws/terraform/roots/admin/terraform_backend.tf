@@ -62,7 +62,8 @@ module "terraform_backend_ci_tf_module" {
       name_suffix                     = null
       aws_iam_openid_connect_provider = module.aws_iam_openid_connect_provider_github_actions.aws_iam_openid_connect_provider
       aws_iam_policies = [
-        data.aws_iam_policy.aws_managed["AdministratorAccess"],
+        data.aws_iam_policy.aws_managed["ReadOnlyAccess"],
+        aws_iam_policy.administrator_access_for_ci_tf_module,
       ]
       is_output = true
     }
