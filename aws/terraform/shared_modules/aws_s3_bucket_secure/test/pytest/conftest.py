@@ -32,7 +32,7 @@ def delete_all_object(init_destroy):
     _logger.info("delete all object")
 
     root = init_destroy
-    aws_s3_buckets = root.module.default.map(lambda m: m.module.aws_s3_bucket_core.aws_s3_bucket.default)
+    aws_s3_buckets = root.module.defaults.map(lambda m: m.module.aws_s3_bucket_core.aws_s3_bucket.default)
 
     for aws_s3_bucket in aws_s3_buckets:
         bucket_name = aws_s3_bucket.values["bucket"]

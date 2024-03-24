@@ -39,8 +39,8 @@ def delete_all_object(init_destroy):
     bucket_name = aws_s3_bucket.values["bucket"]
     _logger.info(f"bucket_name: {bucket_name}")
 
-    boto3.resource("s3").Bucket(bucket_name).objects.all().delete()
     put_bucket_policy_for_block_new_object(bucket_name)
+    boto3.resource("s3").Bucket(bucket_name).objects.all().delete()
     boto3.resource("s3").Bucket(bucket_name).delete()
 
 
