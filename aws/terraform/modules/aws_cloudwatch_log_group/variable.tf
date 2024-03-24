@@ -27,3 +27,5 @@ variable "name_suffix" {
 命名ルールは _naming_module.tf の命名セクションを参照。
 DESC
 }
+
+# test
