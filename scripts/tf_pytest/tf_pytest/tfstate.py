@@ -66,7 +66,7 @@ class NodeResourceTypeResource(NodeResourceType):
 
         resources = [resource for resource in self._state["resources"] if resource["name"] == name]
         if len(resources) == 0:
-            raise AttributeError("{} is not found".format(target_addr))
+            raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
         if not "index" in resources[0].keys():
             return NodeInstanceResource(target_addr, resources[0], self.resource_type)
@@ -88,7 +88,7 @@ class NodeResourceTypeResource(NodeResourceType):
             )
             return node_list
 
-        raise AttributeError("{} is not found".format(target_addr))
+        raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
 
 class NodeResourceTypeData(NodeResourceTypeResource):
@@ -102,7 +102,7 @@ class NodeResourceTypeData(NodeResourceTypeResource):
         resources = [resource for resource in self._state["resources"] if resource["name"] == name]
 
         if len(resources) == 0:
-            raise AttributeError("{} is not found".format(target_addr))
+            raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
         if not "index" in resources[0].keys():
             return NodeInstanceData(target_addr, resources[0], self.resource_type)
@@ -124,7 +124,7 @@ class NodeResourceTypeData(NodeResourceTypeResource):
             )
             return node_list
 
-        raise AttributeError("{} is not found".format(target_addr))
+        raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
 
 # =================================================================
@@ -158,7 +158,7 @@ class NodeCategoryData(NodeCategory):
 
         new_state = {"resources": [resource for resource in self._state["resources"] if resource["type"] == name]}
         if len(new_state["resources"]) == 0:
-            raise AttributeError("{} is not found".format(target_addr))
+            raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
         return NodeResourceTypeData(target_addr, new_state)
 
@@ -181,7 +181,7 @@ class NodeCategoryModule(NodeCategory):
         is_single = all([re.match(r"^\[(.+)\]", module["address"].removeprefix(target_addr)) is None for module in modules])
 
         if len(modules) == 0:
-            raise AttributeError("{} is not found".format(target_addr))
+            raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
         if is_single:
             return NodeInstanceModule(target_addr, modules[0], self.category)
@@ -190,7 +190,7 @@ class NodeCategoryModule(NodeCategory):
             node_list = NodeListInstanceModule([NodeInstanceModule(m["address"], m, self.category) for m in modules])
             return node_list
 
-        raise AttributeError("{} is not found. current address: {}".format(target_addr, self.address))
+        raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
 
 # =================================================================
@@ -255,7 +255,7 @@ class NodeInstanceModule(NodeInstance):
 
         new_state = {"resources": [resource for resource in self._state["resources"] if resource["type"] == name]}
         if len(new_state["resources"]) == 0:
-            raise AttributeError("{} is not found".format(target_addr))
+            raise AttributeError("{} is not found.\nclass: {}, current address: {}".format(target_addr, type(self), self.address))
 
         return NodeResourceTypeResource(target_addr, new_state)
 
