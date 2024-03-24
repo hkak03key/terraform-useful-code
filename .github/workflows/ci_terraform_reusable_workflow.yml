@@ -82,6 +82,8 @@ jobs:
         uses: actions/checkout@v4.1.2
       - name: PWD
         run: pwd
+      - name: Display git branch
+        run: git branch --contains
 
       - name: Masking
         if: ${{ inputs.is-masking }}

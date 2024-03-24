@@ -9,15 +9,41 @@ concurrency:
   group: deploy
 
 jobs:
+  _is_running_on_act:
+    name: _is running on act
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    steps:
+      - name: default
+        id: default
+        run: |-
+          if [ "${{ env.ACT }}" == "true" ]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+    outputs:
+      value: ${{ steps.default.outputs.value }}
+
+
   deploy_terraform:
     name: deploy terraform
+
     uses: ./.github/workflows/deploy_terraform_reusable_workflow.yml
+
+    needs:
+      - _is_running_on_act
+
     permissions:
       id-token: write
       contents: read
       pull-requests: write
 
     with:
+      timeout-minutes: 60
       working-dir: aws/terraform/roots/admin
       aws-region: ap-northeast-1
       is-masking: true
@@ -26,7 +52,10 @@ jobs:
     secrets:
       aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
       aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-iam-role-name: ${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin-gh-act-deploy
+      aws-iam-role-arn: ${{ (needs._is_running_on_act.outputs.value != 'true' && format('arn:aws:iam::{0}:role/{1}-admin-terraform-backend-admin-gh-act-ci', secrets.AWS_ACCOUNT_ID, secrets.AWS_ACCOUNT_NAME)) || secrets.AWS_IAM_ROLE_NAME }}
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
       tf-backend-config-content: |-
         bucket         = "${{ secrets.AWS_ACCOUNT_NAME }}-admin-terraform-backend-admin"
         key            = "terraform.tfstate"

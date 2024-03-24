@@ -12,6 +12,9 @@ module "aws_iam_role_github_actions" {
 
   # add more variables here
   aws_iam_openid_connect_provider = each.value["aws_iam_openid_connect_provider"]
-  aws_iam_policies                = each.value["aws_iam_policies"]
-  github_repository_name          = "hkak03key/terraform-useful-code"
+  aws_iam_policies = flatten([
+    each.value["aws_iam_policies"],
+    aws_iam_policy.dynamodb_readwrite,
+  ])
+  github_repository_name = "hkak03key/terraform-useful-code"
 }

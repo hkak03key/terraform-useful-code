@@ -3,6 +3,9 @@ name: Deploy Terraform Reusable Workflow
 on:
   workflow_call:
     inputs:
+      timeout-minutes:
+        required: true
+        type: number
       working-dir:
         required: true
         type: string
@@ -15,13 +18,13 @@ on:
       tf-backend-config-file-path:
         required: false
         type: string
-        description: |
+        description: |-
           The path of the backend configuration file.
           The format is hcl or json.
       tf-var-file-path:
         required: false
         type: string
-        description: |
+        description: |-
           The path of the var-file.
           The format is hcl or json.
       tf-apply-option:
@@ -36,8 +39,15 @@ on:
         required: true
       aws-account-id:
         required: true
-      aws-iam-role-name:
-        required: true
+      aws-iam-role-arn:
+        required: false
+      aws-access-key-id:
+        required: false
+      aws-secret-access-key:
+        required: false
+      aws-session-token:
+        required: false
+
       tf-backend-config-content:
         required: false
         description: |
@@ -50,14 +60,16 @@ on:
           The format is hcl or json.
 
 env:
-  TF_BACKEND_CONFIG_PATH: /tmp/terraform_backend_config.file
+  TF_BACKEND_CONFIG_FILE_PATH: /tmp/terraform_backend_config.file
   TF_VAR_FILE_PATH: /tmp/tfvar.file
   TF_VERSION: 1.7.4
 
 jobs:
   ci-terraform:
     name: CI Terraform
+
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
 
     permissions:
       id-token: write
@@ -75,35 +87,37 @@ jobs:
         run: pwd
       - name: Display git branch
         run: git branch --contains
+
       - name: Masking
         if: ${{ inputs.is-masking }}
         run: |-
           # github actions
           echo "::add-mask::${{ secrets.aws-account-id }}"
           echo "::add-mask::${{ secrets.aws-account-name }}"
-          echo "::add-mask::${{ secrets.aws-iam-role-name }}"
 
       - name: Restore Terraform Cache
         uses: actions/cache/restore@v3
         with:
           path: ${{ inputs.working-dir }}/.terraform
           key: terraform-${{ hashFiles(format('{0}/.terraform.lock.hcl', inputs.working-dir)) }}
+          restore-keys: |
+            terraform-
 
       - name: Put tf-backend-config
         env:
-          tf_backend_config_file_path: ${{ inputs.tf-backend-config-file-path }}
-          tf_backend_config_content: ${{ secrets.tf-backend-config-content }}
+          _tf_backend_config_file_path: ${{ inputs.tf-backend-config-file-path }}
+          _tf_backend_config_content: ${{ secrets.tf-backend-config-content }}
         run: |-
-          if [ -n '${{ env.tf_backend_config_file_path }}' ] && [ -n '${{ env.tf_backend_config_content }}' ]; then
+          if [ -n '${{ env._tf_backend_config_file_path }}' ] && [ -n '${{ env._tf_backend_config_content }}' ]; then
             echo "Both tf-backend-config-file-path and tf-backend-config-content are provided."
             echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
             exit 1
-          elif [ -n '${{ env.tf_backend_config_file_path }}' ]; then
+          elif [ -n '${{ env._tf_backend_config_file_path }}' ]; then
             echo "inputs.tf-backend-config-file-path is provided."
-            cp ${{ env.tf_backend_config_file_path }} ${{ env.TF_BACKEND_CONFIG_PATH }}
-          elif [ -n '${{ env.tf_backend_config_content }}' ]; then
+            cp ${{ env._tf_backend_config_file_path }} ${{ env.TF_BACKEND_CONFIG_FILE_PATH }}
+          elif [ -n '${{ env._tf_backend_config_content }}' ]; then
             echo "secrets.tf-backend-config-content is provided."
-            echo '${{ env.tf_backend_config_content }}' > ${{ env.TF_BACKEND_CONFIG_PATH }}
+            echo '${{ env._tf_backend_config_content }}' > ${{ env.TF_BACKEND_CONFIG_FILE_PATH }}
           else
             echo "Both tf-backend-config-file-path and tf-backend-config-content are not provided."
             echo "Either tf-backend-config-file-path or tf-backend-config-content must be provided."
@@ -111,35 +125,40 @@ jobs:
           fi
       - name: Put tf-var-file
         env:
-          tf_var_file_path: ${{ inputs.tf-var-file-path }}
-          tf_var_file_content: ${{ secrets.tf-var-file-content }}
+          _tf_var_file_path: ${{ inputs.tf-var-file-path }}
+          _tf_var_file_content: ${{ secrets.tf-var-file-content }}
         run: |-
-          if [ -n '${{ env.tf_var_file_path }}' ] && [ -n '${{ env.tf_var_file_content }}' ]; then
+          if [ -n '${{ env._tf_var_file_path }}' ] && [ -n '${{ env._tf_var_file_content }}' ]; then
             echo "Both tf-var-file-path and tf-var-file-content are provided."
             echo "Either tf-var-file-path or tf-var-file-content must be provided."
             exit 1
-          elif [ -n '${{ env.tf_var_file_path }}' ]; then
+          elif [ -n '${{ env._tf_var_file_path }}' ]; then
             echo "inputs.tf-var-file-path is provided."
-            cp ${{ env.tf_var_file_path }} ${{ env.TF_VAR_FILE_PATH }}
-          elif [ -n '${{ env.tf_var_file_content }}' ]; then
+            cp ${{ env._tf_var_file_path }} ${{ env.TF_VAR_FILE_PATH }}
+          elif [ -n '${{ env._tf_var_file_content }}' ]; then
             echo "secrets.tf-var-file-content is provided."
-            echo '${{ env.tf_var_file_content }}' > ${{ env.TF_VAR_FILE_PATH }}
+            echo '${{ env._tf_var_file_content }}' > ${{ env.TF_VAR_FILE_PATH }}
           else
             echo "Both tf-var-file-path and tf-var-file-content are not provided."
             echo "Either tf-var-file-path or tf-var-file-content must be provided."
             exit 1
           fi
-      - name: Configure AWS credentials from IAM Role
+
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.aws-account-id }}:role/${{ secrets.aws-iam-role-name }}
+          role-to-assume: ${{ secrets.aws-iam-role-arn }}
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-session-token: ${{ secrets.aws-session-token }}
           aws-region: ${{ inputs.aws-region }}
+
       - name: Install Terraform
         working-directory: .
         run: ./scripts/install_terraform.sh ${{ env.TF_VERSION }}
       - name: Terraform Init
         run: |-
-          terraform init -backend-config=${{ env.TF_BACKEND_CONFIG_PATH }}
+          terraform init -backend-config=${{ env.TF_BACKEND_CONFIG_FILE_PATH }}
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file=${{ env.TF_VAR_FILE_PATH }} ${{ inputs.tf-apply-option }}
       - name: Terraform Refresh
@@ -147,6 +166,7 @@ jobs:
         run: terraform apply -refresh-only -auto-approve -var-file=${{ env.TF_VAR_FILE_PATH }}
 
       - name: Save Terraform Cache
+        if: ${{ !env.ACT }}
         uses: actions/cache/save@v4
         with:
           path: |
