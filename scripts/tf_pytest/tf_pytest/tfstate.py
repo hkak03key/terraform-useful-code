@@ -178,11 +178,7 @@ class NodeCategoryModule(NodeCategory):
         ]
 
         # check for_each/count or not
-        is_single = True
-        for module in modules:
-            if re.match(r"^\[(.+)\]$", module["address"].removeprefix(target_addr)):
-                is_single = False
-                break
+        is_single = all([re.match(r"^\[(.+)\]", module["address"].removeprefix(target_addr)) is None for module in modules])
 
         if len(modules) == 0:
             raise AttributeError("{} is not found".format(target_addr))
@@ -194,7 +190,7 @@ class NodeCategoryModule(NodeCategory):
             node_list = NodeListInstanceModule([NodeInstanceModule(m["address"], m, self.category) for m in modules])
             return node_list
 
-        raise AttributeError("{} is not found".format(target_addr))
+        raise AttributeError("{} is not found. current address: {}".format(target_addr, self.address))
 
 
 # =================================================================
