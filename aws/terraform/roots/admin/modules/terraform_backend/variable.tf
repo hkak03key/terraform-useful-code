@@ -143,8 +143,12 @@ variable "aws_iam_role_github_actions_config" {
     object({
       name_suffix                     = optional(string, null)
       aws_iam_openid_connect_provider = any
-      aws_iam_policies                = list(any)
-      is_output                       = bool
+      aws_iam_policies = list(object({
+        id   = string
+        name = string
+        arn  = string
+      }))
+      is_output = bool
     })
   )
   default = {}
