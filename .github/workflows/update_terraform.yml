@@ -46,7 +46,7 @@ jobs:
         run: tfupdate --version
 
       - name: Execute tfupdate
-        run: tfupdate terraform ./aws/terraform/roots/*/terraform.tf
+        run: tfupdate terraform ./aws/terraform/**/_tf_provider.tf
 
       - name: Update github action
         run: |-
