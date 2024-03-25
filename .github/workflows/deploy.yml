@@ -52,7 +52,7 @@ jobs:
     secrets:
       aws-account-name: ${{ secrets.AWS_ACCOUNT_NAME }}
       aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-iam-role-arn: ${{ (needs._is_running_on_act.outputs.value != 'true' && format('arn:aws:iam::{0}:role/{1}-admin-terraform-backend-admin-gh-act-ci', secrets.AWS_ACCOUNT_ID, secrets.AWS_ACCOUNT_NAME)) || secrets.AWS_IAM_ROLE_NAME }}
+      aws-iam-role-arn: ${{ (needs._is_running_on_act.outputs.value != 'true' && format('arn:aws:iam::{0}:role/{1}-admin-terraform-backend-admin-gh-act-deploy', secrets.AWS_ACCOUNT_ID, secrets.AWS_ACCOUNT_NAME)) || secrets.AWS_IAM_ROLE_NAME }}
       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
