@@ -46,7 +46,9 @@ jobs:
         run: tfupdate --version
 
       - name: Execute tfupdate
-        run: tfupdate terraform ./aws/terraform/**/_tf_provider.tf
+        run: |-
+          find . -path ./aws/terraform/**/_tf_provider.tf | xargs -n 1 -P 10 -I {} tfupdate terraform {}
+          find . -path ./aws/terraform/**/_tf_provider.tf | xargs -n 1 -P 10 -I {} tfupdate provider aws {}
 
       - name: Update github action
         run: |-
@@ -92,6 +94,7 @@ jobs:
     if: needs.update_terraform.outputs.exists_diff == 'true'
 
     permissions:
+      contents: read
       pull-requests: write
 
     steps:
