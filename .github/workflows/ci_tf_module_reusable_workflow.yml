@@ -1,4 +1,4 @@
-name: CI Terraform Reusable Workflow
+name: CI tf Module Reusable Workflow
 
 on:
   workflow_call:
@@ -56,8 +56,8 @@ env:
   TF_VERSION: 1.7.4
 
 jobs:
-  ci-terraform:
-    name: CI Terraform
+  ci-tf-module:
+    name: CI tf Module
     runs-on: ubuntu-latest
 
     permissions:
