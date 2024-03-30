@@ -45,3 +45,26 @@ resource "aws_iam_policy" "administrator_access_for_ci_tf_module" {
     ]
   })
 }
+
+
+resource "aws_iam_policy" "events_readwrite_sfn_get_events_for_any_rule" {
+  name = "events-readwrite-sfn-get-events-for-@-rule"
+  path = "/global"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "events:PutTargets",
+          "events:PutRule",
+          "events:DescribeRule",
+        ],
+        Resource = [
+          "arn:aws:events:*:${local.aws_account_id}:rule/StepFunctionsGetEventsFor*Rule",
+        ]
+      }
+    ]
+  })
+}
