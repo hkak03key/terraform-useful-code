@@ -36,6 +36,7 @@ jobs:
     needs: get_terraform_latest_version
 
     permissions:
+      actions: write
       contents: write
 
     steps:
